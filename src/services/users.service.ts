@@ -1,5 +1,6 @@
 import { hash } from 'bcrypt';
 import { Service } from 'typedi';
+import { equal } from 'node:assert';
 import { HttpException } from '@exceptions/HttpException';
 import { User } from '@interfaces/users.interface';
 import { UserModel } from '@models/users.model';
@@ -51,6 +52,7 @@ export class UserService {
     if (!findUser) throw new HttpException(409, "User doesn't exist");
 
     const deletedRows: number = await UserModel.destroy({ where: { id: userId } });
+    equal(deletedRows <= 1, true, `Expected 0 or 1 row to be deleted, but got ${deletedRows} rows`);
     return deletedRows === 1;
   }
 }
