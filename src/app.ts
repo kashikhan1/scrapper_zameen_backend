@@ -12,6 +12,7 @@ import { NODE_ENV, PORT, LOG_FORMAT, ORIGIN, CREDENTIALS } from '@config';
 import { Routes } from '@interfaces/routes.interface';
 import { ErrorMiddleware } from '@middlewares/error.middleware';
 import { logger, stream } from '@utils/logger';
+import { sequelize } from './config/sequelize';
 
 export class App {
   public app: express.Application;
@@ -36,6 +37,14 @@ export class App {
         logger.info(`======= ENV: ${this.env} =======`);
         logger.info(`🚀 App listening on the port ${this.port}`);
         logger.info(`=================================`);
+        sequelize
+          .authenticate()
+          .then(() => {
+            logger.info('Connection has been established successfully.');
+          })
+          .catch((error: Error) => {
+            logger.error('Unable to connect to the database:', error);
+          });
       })
       .on('error', (error: NodeJS.ErrnoException) => {
         logger.error('Error occurred while starting the server', error);
