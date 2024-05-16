@@ -56,6 +56,9 @@ importers:
       swagger-ui-express:
         specifier: ^5.0.0
         version: 5.0.0(express@4.19.2)
+      tslib:
+        specifier: ^2.6.2
+        version: 2.6.2
       typedi:
         specifier: ^0.10.0
         version: 0.10.0
