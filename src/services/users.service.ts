@@ -23,7 +23,7 @@ export class UserService {
     if (findUser) throw new HttpException(409, `This email ${userData.email} already exists`);
 
     const hashedPassword = await hash(userData.password, 10);
-    const createUserData: User = { ...userData, password: hashedPassword };
+    const createUserData: Promise<User> = UserModel.create({ ...userData, password: hashedPassword });
 
     return createUserData;
   }
@@ -31,20 +31,23 @@ export class UserService {
   public async updateUser(userId: number, userData: User): Promise<User> {
     const findUser: User = await UserModel.findByPk(userId);
     if (!findUser) throw new HttpException(409, "User doesn't exist");
+    delete userData.password;
+    const [updatedRows, [updatedUser]] = await UserModel.update(userData, {
+      where: { id: userId },
+      returning: true,
+    });
 
-    const hashedPassword = await hash(userData.password, 10);
-    await UserModel.update({ ...userData, password: hashedPassword }, { where: { id: userId } });
-    const updatedUser: User | null = await UserModel.findByPk(userId);
-    if (!updatedUser) {
-      throw new HttpException(500, 'Failed to fetch updated user data');
+    if (updatedRows !== 1) {
+      throw new HttpException(500, 'Failed to update user');
     }
     return updatedUser;
   }
 
-  public async deleteUser(userId: number): Promise<number> {
+  public async deleteUser(userId: number): Promise<boolean> {
     const findUser: User = await UserModel.findByPk(userId);
     if (!findUser) throw new HttpException(409, "User doesn't exist");
 
-    return UserModel.destroy({ where: { id: userId } });
+    const deletedRows: number = await UserModel.destroy({ where: { id: userId } });
+    return deletedRows === 1;
   }
 }
