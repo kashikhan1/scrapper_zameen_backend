@@ -12,40 +12,39 @@ export class UserService {
   }
 
   public async findUserById(userId: number): Promise<User> {
-    const findUser: User = UserModel.find(user => user.id === userId);
+    const findUser: User = await UserModel.findByPk(userId);
     if (!findUser) throw new HttpException(409, "User doesn't exist");
 
     return findUser;
   }
 
   public async createUser(userData: User): Promise<User> {
-    const findUser: User = UserModel.find(user => user.email === userData.email);
+    const findUser: User = await UserModel.findOne({ where: { email: userData.email } });
     if (findUser) throw new HttpException(409, `This email ${userData.email} already exists`);
 
     const hashedPassword = await hash(userData.password, 10);
-    const createUserData: User = { ...userData, id: UserModel.length + 1, password: hashedPassword };
+    const createUserData: User = { ...userData, password: hashedPassword };
 
     return createUserData;
   }
 
-  public async updateUser(userId: number, userData: User): Promise<User[]> {
-    const findUser: User = UserModel.find(user => user.id === userId);
+  public async updateUser(userId: number, userData: User): Promise<User> {
+    const findUser: User = await UserModel.findByPk(userId);
     if (!findUser) throw new HttpException(409, "User doesn't exist");
 
     const hashedPassword = await hash(userData.password, 10);
-    const updateUserData: User[] = UserModel.map((user: User) => {
-      if (user.id === findUser.id) user = { ...userData, id: userId, password: hashedPassword };
-      return user;
-    });
-
-    return updateUserData;
+    await UserModel.update({ ...userData, password: hashedPassword }, { where: { id: userId } });
+    const updatedUser: User | null = await UserModel.findByPk(userId);
+    if (!updatedUser) {
+      throw new HttpException(500, 'Failed to fetch updated user data');
+    }
+    return updatedUser;
   }
 
-  public async deleteUser(userId: number): Promise<User[]> {
-    const findUser: User = UserModel.find(user => user.id === userId);
+  public async deleteUser(userId: number): Promise<number> {
+    const findUser: User = await UserModel.findByPk(userId);
     if (!findUser) throw new HttpException(409, "User doesn't exist");
 
-    const deleteUserData: User[] = UserModel.filter(user => user.id !== findUser.id);
-    return deleteUserData;
+    return UserModel.destroy({ where: { id: userId } });
   }
 }
