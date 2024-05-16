@@ -30,12 +30,16 @@ export class App {
   }
 
   public listen() {
-    this.app.listen(this.port, () => {
-      logger.info(`=================================`);
-      logger.info(`======= ENV: ${this.env} =======`);
-      logger.info(`🚀 App listening on the port ${this.port}`);
-      logger.info(`=================================`);
-    });
+    this.app
+      .listen(this.port, () => {
+        logger.info(`=================================`);
+        logger.info(`======= ENV: ${this.env} =======`);
+        logger.info(`🚀 App listening on the port ${this.port}`);
+        logger.info(`=================================`);
+      })
+      .on('error', (error: NodeJS.ErrnoException) => {
+        logger.error('Error occurred while starting the server', error);
+      });
   }
 
   public getServer() {
