@@ -7,12 +7,14 @@ import { UserModel } from '@models/users.model';
 @Service()
 export class UserService {
   public async findAllUser(): Promise<User[]> {
-    const users: Promise<User[]> = UserModel.findAll();
+    const users: Promise<User[]> = UserModel.findAll({
+      attributes: { exclude: ['password'] },
+    });
     return users;
   }
 
   public async findUserById(userId: number): Promise<User> {
-    const findUser: User = await UserModel.findByPk(userId);
+    const findUser: User = await UserModel.findByPk(userId, { attributes: { exclude: ['password'] } });
     if (!findUser) throw new HttpException(409, "User doesn't exist");
 
     return findUser;
@@ -23,8 +25,8 @@ export class UserService {
     if (findUser) throw new HttpException(409, `This email ${userData.email} already exists`);
 
     const hashedPassword = await hash(userData.password, 10);
-    const createUserData: Promise<User> = UserModel.create({ ...userData, password: hashedPassword });
-
+    const createUserData: User = await UserModel.create({ ...userData, password: hashedPassword });
+    delete createUserData.password;
     return createUserData;
   }
 
@@ -40,6 +42,7 @@ export class UserService {
     if (updatedRows !== 1) {
       throw new HttpException(500, 'Failed to update user');
     }
+    delete updatedUser.password;
     return updatedUser;
   }
 
