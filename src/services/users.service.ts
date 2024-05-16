@@ -7,7 +7,7 @@ import { UserModel } from '@models/users.model';
 @Service()
 export class UserService {
   public async findAllUser(): Promise<User[]> {
-    const users: User[] = UserModel;
+    const users: Promise<User[]> = UserModel.findAll();
     return users;
   }
 
