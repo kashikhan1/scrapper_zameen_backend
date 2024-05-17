@@ -2,12 +2,16 @@ import { NextFunction, Request, Response } from 'express';
 import { Container } from 'typedi';
 import { User } from '@interfaces/users.interface';
 import { UserService } from '@services/users.service';
+import { HttpException } from '@/exceptions/HttpException';
 
 export class UserController {
   public user = Container.get(UserService);
 
   public getUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      if (!req.isAuthenticated()) {
+        throw new HttpException(401, 'Unauthorized');
+      }
       const findAllUsersData: User[] = await this.user.findAllUser();
 
       res.status(200).json({ data: findAllUsersData, message: 'findAll' });
@@ -18,6 +22,9 @@ export class UserController {
 
   public getUserById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      if (!req.isAuthenticated()) {
+        throw new HttpException(401, 'Unauthorized');
+      }
       const userId = Number(req.params.id);
       const findOneUserData: User = await this.user.findUserById(userId);
 
@@ -40,6 +47,9 @@ export class UserController {
 
   public updateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      if (!req.isAuthenticated()) {
+        throw new HttpException(401, 'Unauthorized');
+      }
       const userId = Number(req.params.id);
       const userData: User = req.body;
       const updateUserData: User = await this.user.updateUser(userId, userData);
@@ -52,6 +62,9 @@ export class UserController {
 
   public deleteUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      if (!req.isAuthenticated()) {
+        throw new HttpException(401, 'Unauthorized');
+      }
       const userId = Number(req.params.id);
       await this.user.deleteUser(userId);
       res.status(200).json({ data: {}, message: 'deleted' });
