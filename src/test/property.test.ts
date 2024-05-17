@@ -48,6 +48,15 @@ describe('Property', () => {
       expect(response.body.data[0]).toHaveProperty('count');
       expect(response.body).toHaveProperty('message');
     });
+    it('should retrieve the total count of properties', async () => {
+      const response = await request(app).get('/property/count/islamabad');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('data');
+      expect(response.body.data).toBeInstanceOf(Array);
+      expect(response.body.data.length).toBe(1);
+      expect(response.body.data[0]).toHaveProperty('count');
+      expect(response.body).toHaveProperty('message');
+    });
   });
   describe('GET /property/:id', () => {
     it('should retrieve a property by ID', async () => {
@@ -98,7 +107,7 @@ describe('Property', () => {
       expect(prices).toEqual([...prices].sort((a, b) => b - a));
     });
     it('should return no data for invalid city name', async () => {
-      const response = await request(app).get('/property/invalid_city_name');
+      const response = await request(app).get('/property/invalid city name');
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('message');
       expect(response.body.data).toBeInstanceOf(Array);

@@ -38,7 +38,7 @@ export class PropertyController {
   };
   public getPropertyCount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const propertyCount = await this.property.getPropertyCount();
+      const propertyCount = await this.property.getPropertyCount({ city: req.params.city });
       res.status(200).json({ data: propertyCount, message: 'count' });
     } catch (error) {
       next(error);

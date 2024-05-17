@@ -25,3 +25,15 @@ export const ValidationMiddleware = (type: any, skipMissingProperties = false, w
       });
   };
 };
+
+// Middleware to validate req.params.city
+export const validateCityParam = (req: Request, res: Response, next: NextFunction) => {
+  const { city } = req.params;
+  const cityRegex = /^[A-Za-z\s]+$/;
+
+  if (city && typeof city === 'string' && city.trim() !== '' && cityRegex.test(city)) {
+    next();
+  } else {
+    res.status(400).json({ message: 'Invalid city parameter. It must be a non-empty string and cannot contain number.' });
+  }
+};
