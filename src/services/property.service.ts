@@ -1,7 +1,7 @@
 import { Service } from 'typedi';
 import { QueryTypes } from 'sequelize';
 import { sequelize } from '@config/sequelize';
-import { SORT_COLUMNS, SORT_ORDER } from '@/types';
+import { AVAILABLE_CITIES, SORT_COLUMNS, SORT_ORDER } from '@/types';
 
 @Service()
 export class PropertyService {
@@ -53,6 +53,6 @@ export class PropertyService {
     });
   }
   public async availableCitiesData() {
-    return ['islamabad', 'rawalpindi', 'lahore', 'karachi'];
+    return Object.values(AVAILABLE_CITIES);
   }
 }
