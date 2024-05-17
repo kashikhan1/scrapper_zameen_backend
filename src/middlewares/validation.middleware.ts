@@ -2,6 +2,7 @@ import { plainToInstance } from 'class-transformer';
 import { validateOrReject, ValidationError } from 'class-validator';
 import { NextFunction, Request, Response } from 'express';
 import { HttpException } from '@exceptions/HttpException';
+import { AVAILABLE_CITIES } from '@/types';
 
 /**
  * @name ValidationMiddleware
@@ -29,11 +30,10 @@ export const ValidationMiddleware = (type: any, skipMissingProperties = false, w
 // Middleware to validate req.params.city
 export const validateCityParam = (req: Request, res: Response, next: NextFunction) => {
   const { city } = req.params;
-  const cityRegex = /^[A-Za-z\s]+$/;
 
-  if (city && typeof city === 'string' && city.trim() !== '' && cityRegex.test(city)) {
+  if (city && Object.values(AVAILABLE_CITIES).includes(city as AVAILABLE_CITIES)) {
     next();
   } else {
-    res.status(400).json({ message: 'Invalid city parameter. It must be a non-empty string and cannot contain number.' });
+    res.status(400).json({ message: `Invalid city parameter. It must be one of following: ${Object.values(AVAILABLE_CITIES).join(', ')}` });
   }
 };
