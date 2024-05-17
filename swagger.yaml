@@ -197,6 +197,27 @@ paths:
                 example: "findOne"
         404:
           description: Property not found
+  /property/available-cities:
+    get:
+      tags:
+      - property
+      summary: Retrieve Available cities
+      description: Retrieve a list of cities for which properties are available.
+      responses:
+        200:
+          description: A list of cities
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  type: string
+                  example: "Islamabad"
+              message:
+                type: string
+                example: "available-cities"
+
   /property/{city}:
     get:
       tags:
