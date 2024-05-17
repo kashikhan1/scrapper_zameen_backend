@@ -197,6 +197,53 @@ paths:
                 example: "findOne"
         404:
           description: Property not found
+  /property/{city}:
+    get:
+      tags:
+      - property
+      summary: Retrieve properties
+      description: Retrieve a list of properties from a specified city with pagination and sorting options.
+      parameters:
+        - name: city
+          in: path
+          description: Name of the city to retrieve properties from
+          required: true
+          type: string
+        - name: page_size
+          in: query
+          description: Number of items per page
+          type: integer
+          default: 10
+        - name: page_number
+          in: query
+          description: Page number
+          type: integer
+          default: 1
+        - name: sort_by
+          in: query
+          description: Column to sort by
+          type: string
+          enum: [id, price]
+          default: id
+        - name: sort_order
+          in: query
+          description: Sort order
+          type: string
+          enum: [ASC, DESC]
+          default: ASC
+      responses:
+        200:
+          description: A list of properties
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/Property'
+              message:
+                type: string
+                example: "findAll"
 
 # definitions
 definitions:
