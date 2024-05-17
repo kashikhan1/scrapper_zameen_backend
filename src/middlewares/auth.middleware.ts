@@ -21,7 +21,7 @@ export const AuthMiddleware = async (req: RequestWithUser, res: Response, next: 
 
     if (Authorization) {
       const { id } = (await verify(Authorization, SECRET_KEY)) as DataStoredInToken;
-      const findUser = UserModel.find(user => user.id === id);
+      const findUser = await UserModel.findByPk(id);
 
       if (findUser) {
         req.user = findUser;
