@@ -1,6 +1,8 @@
 tags:
 - name: users
   description: users API
+- name: property
+  description: properties API
 
 paths:
 # [GET] users
@@ -104,6 +106,8 @@ paths:
           description: 'Server Error'
   /property:
     get:
+      tags:
+      - property
       summary: Retrieve properties
       description: Retrieve a list of properties with pagination and sorting options.
       parameters:
@@ -145,6 +149,8 @@ paths:
     
   /property/count:
     get:
+      tags:
+      - property
       summary: Get total property count
       description: Retrieve the total count of properties.
       responses:
@@ -166,6 +172,8 @@ paths:
                 example: "count"
   /property/{id}:
     get:
+      tags:
+      - property
       summary: Retrieve property by ID
       description: Retrieve a property by its ID.
       parameters:
