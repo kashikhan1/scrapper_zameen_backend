@@ -6,7 +6,11 @@
 GET {{ baseURL }}/property?page_number=1&page_size=10
 
 ###
+GET {{ baseURL }}/property/islamabad?page_number=1000&page_size=10
+
+###
 # Find property By Id
 GET {{ baseURL }}/property/3
 
-
+###
+GET {{ baseURL }}/property/count
