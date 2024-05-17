@@ -102,6 +102,93 @@ paths:
           description: 'Conflict'
         500:
           description: 'Server Error'
+  /property:
+    get:
+      summary: Retrieve properties
+      description: Retrieve a list of properties with pagination and sorting options.
+      parameters:
+        - name: page_size
+          in: query
+          description: Number of items per page
+          type: integer
+          default: 10
+        - name: page_number
+          in: query
+          description: Page number
+          type: integer
+          default: 1
+        - name: sort_by
+          in: query
+          description: Column to sort by
+          type: string
+          enum: [id, price]
+          default: id
+        - name: sort_order
+          in: query
+          description: Sort order
+          type: string
+          enum: [ASC, DESC]
+          default: ASC
+      responses:
+        200:
+          description: A list of properties
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/Property'
+              message:
+                type: string
+                example: "findAll"
+    
+  /property/count:
+    get:
+      summary: Get total property count
+      description: Retrieve the total count of properties.
+      responses:
+        200:
+          description: Total property count
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    count:
+                      type: string
+                      example: "5040"
+              message:
+                type: string
+                example: "count"
+  /property/{id}:
+    get:
+      summary: Retrieve property by ID
+      description: Retrieve a property by its ID.
+      parameters:
+        - name: id
+          in: path
+          description: ID of the property to retrieve
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Property details
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/Property'
+              message:
+                type: string
+                example: "findOne"
+        404:
+          description: Property not found
 
 # definitions
 definitions:
@@ -117,6 +204,87 @@ definitions:
       password:
         type: string
         description: user Password
+  Property:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      added:
+        type: integer
+        example: 1617187200
+      created_at:
+        type: string
+        format: date-time
+        example: '2023-05-17T00:00:00Z'
+      updated_at:
+        type: string
+        format: date-time
+        example: '2023-05-17T00:00:00Z'
+      price:
+        type: string
+        maxLength: 255
+        example: '1000000'
+      location:
+        type: string
+        maxLength: 255
+        example: 'New York'
+      bath:
+        type: string
+        maxLength: 255
+        example: '2'
+      area:
+        type: string
+        maxLength: 255
+        example: '1500 sq ft'
+      purpose:
+        type: string
+        maxLength: 255
+        example: 'Residential'
+      bedroom:
+        type: string
+        maxLength: 255
+        example: '3'
+      url:
+        type: string
+        format: uri
+        example: 'http://example.com/property/1'
+      initial_amount:
+        type: string
+        maxLength: 255
+        example: '50000'
+      monthly_installment:
+        type: string
+        maxLength: 255
+        example: '1500'
+      remaining_installments:
+        type: string
+        maxLength: 255
+        example: '36'
+      desc:
+        type: string
+        example: 'Beautiful property located in the heart of the city.'
+      header:
+        type: string
+        example: 'Prime Location Property'
+      type:
+        type: string
+        maxLength: 255
+        example: 'Apartment'
+    required:
+      - id
+      - added
+      - created_at
+      - updated_at
+      - price
+      - location
+      - bath
+      - area
+      - purpose
+      - bedroom
+      - desc
+      - header
+      - type
 
 schemes:
  - https
