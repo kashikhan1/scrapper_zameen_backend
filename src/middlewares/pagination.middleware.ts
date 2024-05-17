@@ -32,20 +32,12 @@ export const validateSortParamsMiddleware = (req: Request, res: Response, next: 
     req.query.sort_order = SORT_ORDER.ASC;
   }
   const { sort_by, sort_order } = req.query;
-  if (
-    sort_by !== undefined &&
-    sort_order !== undefined &&
-    Object.values(SORT_COLUMNS).includes(sort_by as SORT_COLUMNS) &&
-    Object.values(SORT_ORDER).includes(sort_order as SORT_ORDER)
-  ) {
-    next();
-  } else {
-    res.status(400).json({
-      message:
-        'Invalid sort parameters. sort_by must be one of the following: ' +
-        Object.values(SORT_COLUMNS).join(', ') +
-        ' and sort_order must be one of the following: ' +
-        Object.values(SORT_ORDER).join(', '),
-    });
+  if (!Object.values(SORT_COLUMNS).includes(sort_by as SORT_COLUMNS)) {
+    return res.status(400).json({ message: 'sort_by must be one of the following: ' + Object.values(SORT_COLUMNS).join(', ') });
   }
+  if (!Object.values(SORT_ORDER).includes(sort_order as SORT_ORDER)) {
+    return res.status(400).json({ message: 'sort_order must be one of the following: ' + Object.values(SORT_ORDER).join(', ') });
+  }
+
+  next();
 };

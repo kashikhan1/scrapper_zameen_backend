@@ -107,7 +107,7 @@ describe('Property', () => {
       expect(prices).toEqual([...prices].sort((a, b) => b - a));
     });
     it('should return no data for invalid city name', async () => {
-      const response = await request(app).get('/property/invalid_city_name');
+      const response = await request(app).get('/property/invalid city name');
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('message');
       expect(response.body.data).toBeInstanceOf(Array);
