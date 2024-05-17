@@ -44,9 +44,12 @@ export class PropertyService {
       replacements: { propertyId },
     });
   }
-  public async getPropertyCount() {
-    return await sequelize.query(`SELECT COUNT(*) FROM property_v2;`, {
+  public async getPropertyCount({ city }: { city?: string }) {
+    const query = city ? `SELECT COUNT(*) FROM property_v2 WHERE location ILIKE :city;` : `SELECT COUNT(*) FROM property_v2;`;
+    const replacements = city ? { city: `%${city}%` } : {};
+    return await sequelize.query(query, {
       type: QueryTypes.SELECT,
+      replacements,
     });
   }
 }
