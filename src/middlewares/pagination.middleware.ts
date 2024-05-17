@@ -10,7 +10,14 @@ export const validatePaginationParamsMiddleware = (req: Request, res: Response, 
     req.query.page_number = '1';
   }
   const { page_size, page_number } = req.query;
-  if (page_size !== undefined && page_number !== undefined && !isNaN(Number(page_size)) && !isNaN(Number(page_number))) {
+  if (
+    page_size !== undefined &&
+    page_number !== undefined &&
+    !isNaN(Number(page_size)) &&
+    !isNaN(Number(page_number)) &&
+    Number(page_number) >= 0 &&
+    Number(page_size) >= 0
+  ) {
     next();
   } else {
     res.status(400).json({ message: 'Invalid pagination parameters. Both page_size and page_number must be valid numbers.' });
