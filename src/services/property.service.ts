@@ -52,4 +52,7 @@ export class PropertyService {
       replacements,
     });
   }
+  public async availableCitiesData() {
+    return ['islamabad', 'rawalpindi', 'lahore', 'karachi'];
+  }
 }

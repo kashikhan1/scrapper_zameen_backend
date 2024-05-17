@@ -44,4 +44,12 @@ export class PropertyController {
       next(error);
     }
   };
+  public getAvailableCities = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const cities = await this.property.availableCitiesData();
+      res.status(200).json({ data: cities, message: 'available-cities' });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
