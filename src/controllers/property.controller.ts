@@ -22,7 +22,7 @@ export class PropertyController {
         sort_by,
         sort_order,
       });
-      res.status(200).json({ data: findAllPropertiesData, message: 'findAll' });
+      res.status(200).json({ data: { ...findAllPropertiesData, page_number, page_size }, message: 'findAll' });
     } catch (error) {
       next(error);
     }

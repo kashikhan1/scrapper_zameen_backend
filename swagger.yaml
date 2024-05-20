@@ -142,6 +142,12 @@ paths:
               data:
                 type: object
                 properties:
+                  page_number:
+                    type: string
+                    example: "1"
+                  page_size:
+                    type: string
+                    example: "10"
                   count:
                     type: string
                     example: "5040"
