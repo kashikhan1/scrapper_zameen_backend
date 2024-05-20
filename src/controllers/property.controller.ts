@@ -53,8 +53,7 @@ export class PropertyController {
     }
   };
   public searchProperties = async (req: Request, res: Response, next: NextFunction) => {
-    const { city, query, page_number, page_size, sort_by, sort_order } = req.query as {
-      city: string;
+    const { query, page_number, page_size, sort_by, sort_order } = req.query as {
       query: string;
       page_number: string;
       page_size: string;
@@ -64,7 +63,7 @@ export class PropertyController {
 
     try {
       const properties = await this.property.searchProperties({
-        city,
+        city: req.params.city,
         search: query,
         page_number: Number(page_number),
         page_size: Number(page_size),

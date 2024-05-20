@@ -22,11 +22,18 @@ export class PropertyRoute implements Routes {
       validateSearchQueryParamMiddleware,
       validatePaginationParamsMiddleware,
       validateSortParamsMiddleware,
-      validateCityParam,
       this.property.searchProperties,
     );
     this.router.get(`${this.path}/:id(\\d+)`, this.property.getPropertyById);
     this.router.get(`${this.path}/count/:city`, validateCityParam, this.property.getPropertyCount);
+    this.router.get(
+      `${this.path}/search/:city`,
+      validateSearchQueryParamMiddleware,
+      validatePaginationParamsMiddleware,
+      validateSortParamsMiddleware,
+      validateCityParam,
+      this.property.searchProperties,
+    );
     this.router.get(
       `${this.path}/:city`,
       validatePaginationParamsMiddleware,
