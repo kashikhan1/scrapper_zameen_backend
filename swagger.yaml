@@ -140,9 +140,15 @@ paths:
             type: object
             properties:
               data:
-                type: array
-                items:
-                  $ref: '#/definitions/Property'
+                type: object
+                properties:
+                  count:
+                    type: string
+                    example: "5040"
+                  properties:
+                    type: array
+                    items:
+                      $ref: '#/definitions/Property'
               message:
                 type: string
                 example: "findAll"

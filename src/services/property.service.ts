@@ -24,6 +24,13 @@ export class PropertyService {
     if (!Object.values(SORT_ORDER).includes(sort_order)) {
       throw new Error('Invalid sort_order');
     }
+    const countQuery = city ? `SELECT COUNT(*) FROM property_v2 WHERE location ILIKE :city;` : `SELECT COUNT(*) FROM property_v2;`;
+    const countReplacements = city ? { city: `%${city}%` } : {};
+    const countResult = await sequelize.query(countQuery, {
+      type: QueryTypes.SELECT,
+      replacements: countReplacements,
+    });
+    const totalCount = countResult[0]['count'];
     const sortColumn = sort_by === SORT_COLUMNS.PRICE ? `CAST(NULLIF(price, '') AS double precision)` : sort_by;
 
     const offset = (page_number - 1) * page_size;
@@ -36,7 +43,7 @@ export class PropertyService {
       type: QueryTypes.SELECT,
       replacements,
     });
-    return properties;
+    return { properties, totalCount };
   }
   public async findPropertyById(propertyId: number) {
     return await sequelize.query(`SELECT * FROM property_v2 WHERE id = :propertyId`, {
