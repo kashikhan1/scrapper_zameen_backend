@@ -37,3 +37,15 @@ export const validateCityParam = (req: Request, res: Response, next: NextFunctio
     res.status(400).json({ message: `Invalid city parameter. It must be one of following: ${Object.values(AVAILABLE_CITIES).join(', ')}` });
   }
 };
+
+export const validateSearchQueryParamMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  if (req.query.query == null) {
+    req.query.query = '';
+  }
+  const { query } = req.query;
+  if (typeof query !== 'string') {
+    res.status(400).json({ message: 'Invalid query search parameter. It must be a string.' });
+  } else {
+    next();
+  }
+};
