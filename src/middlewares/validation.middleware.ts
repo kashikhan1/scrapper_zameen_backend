@@ -31,9 +31,21 @@ export const ValidationMiddleware = (type: any, skipMissingProperties = false, w
 export const validateCityParam = (req: Request, res: Response, next: NextFunction) => {
   const { city } = req.params;
 
-  if (city && Object.values(AVAILABLE_CITIES).includes(city as AVAILABLE_CITIES)) {
+  if (city == null || Object.values(AVAILABLE_CITIES).includes(city as AVAILABLE_CITIES)) {
     next();
   } else {
     res.status(400).json({ message: `Invalid city parameter. It must be one of following: ${Object.values(AVAILABLE_CITIES).join(', ')}` });
+  }
+};
+
+export const validateSearchQueryParamMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  if (req.query.query == null) {
+    req.query.query = '';
+  }
+  const { query } = req.query;
+  if (typeof query !== 'string') {
+    res.status(400).json({ message: 'Invalid query search parameter. It must be a string.' });
+  } else {
+    next();
   }
 };

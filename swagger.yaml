@@ -140,13 +140,83 @@ paths:
             type: object
             properties:
               data:
-                type: array
-                items:
-                  $ref: '#/definitions/Property'
+                type: object
+                properties:
+                  page_number:
+                    type: string
+                    example: "1"
+                  page_size:
+                    type: string
+                    example: "10"
+                  total_count:
+                    type: string
+                    example: "5040"
+                  properties:
+                    type: array
+                    items:
+                      $ref: '#/definitions/Property'
               message:
                 type: string
                 example: "findAll"
-    
+  /property/search:
+    get:
+      tags:
+      - property
+      summary: Search for properties
+      description: Search for a list of properties with pagination and sorting options.
+      parameters:
+        - name: query
+          in: query
+          description: Query to search for.
+          type: string
+          default: ''
+        - name: page_size
+          in: query
+          description: Number of items per page
+          type: integer
+          default: 10
+        - name: page_number
+          in: query
+          description: Page number
+          type: integer
+          default: 1
+        - name: sort_by
+          in: query
+          description: Column to sort by
+          type: string
+          enum: [id, price]
+          default: id
+        - name: sort_order
+          in: query
+          description: Sort order
+          type: string
+          enum: [ASC, DESC]
+          default: ASC
+      responses:
+        200:
+          description: A list of properties
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  page_number:
+                    type: string
+                    example: "1"
+                  page_size:
+                    type: string
+                    example: "10"
+                  total_count:
+                    type: string
+                    example: "5040"
+                  properties:
+                    type: array
+                    items:
+                      $ref: '#/definitions/Property'
+              message:
+                type: string
+                example: "search-properties"
   /property/count:
     get:
       tags:
@@ -259,12 +329,88 @@ paths:
             type: object
             properties:
               data:
-                type: array
-                items:
-                  $ref: '#/definitions/Property'
+                type: object
+                properties:
+                  page_number:
+                    type: string
+                    example: "1"
+                  page_size:
+                    type: string
+                    example: "10"
+                  total_count:
+                    type: string
+                    example: "5040"
+                  properties:
+                    type: array
+                    items:
+                      $ref: '#/definitions/Property'
               message:
                 type: string
                 example: "findAll"
+  /property/search/{city}:
+    get:
+      tags:
+      - property
+      summary: Search for properties
+      description: Search for a list of properties from a specified city with pagination and sorting options.
+      parameters:
+        - name: query
+          in: query
+          description: Query to search for.
+          type: string
+          default: ''
+        - name: city
+          in: path
+          description: Name of the city to retrieve properties from
+          required: true
+          type: string
+        - name: page_size
+          in: query
+          description: Number of items per page
+          type: integer
+          default: 10
+        - name: page_number
+          in: query
+          description: Page number
+          type: integer
+          default: 1
+        - name: sort_by
+          in: query
+          description: Column to sort by
+          type: string
+          enum: [id, price]
+          default: id
+        - name: sort_order
+          in: query
+          description: Sort order
+          type: string
+          enum: [ASC, DESC]
+          default: ASC
+      responses:
+        200:
+          description: A list of properties
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  page_number:
+                    type: string
+                    example: "1"
+                  page_size:
+                    type: string
+                    example: "10"
+                  total_count:
+                    type: string
+                    example: "5040"
+                  properties:
+                    type: array
+                    items:
+                      $ref: '#/definitions/Property'
+              message:
+                type: string
+                example: "search-properties"
 
 # definitions
 definitions:
