@@ -240,6 +240,35 @@ paths:
               message:
                 type: string
                 example: "count"
+  /property/count/{city}:
+    get:
+      tags:
+      - property
+      summary: Get total property count in specified city
+      description: Retrieve the total count of properties available in specified city.
+      parameters:
+        - name: city
+          in: path
+          description: Name of the city to count properties for
+          required: true
+          type: string
+      responses:
+        200:
+          description: Total property count
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    count:
+                      type: string
+                      example: "5040"
+              message:
+                type: string
+                example: "count"
   /property/{id}:
     get:
       tags:
