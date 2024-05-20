@@ -72,7 +72,7 @@ export class PropertyService {
       type: QueryTypes.SELECT,
       replacements,
     });
-    return { properties, totalCount };
+    return { properties, total_count: totalCount };
   }
   public async findPropertyById(propertyId: number) {
     return await sequelize.query(`SELECT * FROM property_v2 WHERE id = :propertyId`, {
@@ -122,6 +122,6 @@ export class PropertyService {
       type: QueryTypes.SELECT,
       replacements,
     });
-    return { properties, totalCount };
+    return { properties, total_count: totalCount };
   }
 }
