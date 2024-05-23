@@ -3,6 +3,7 @@ import { validateOrReject, ValidationError } from 'class-validator';
 import { NextFunction, Request, Response } from 'express';
 import { HttpException } from '@exceptions/HttpException';
 import { AVAILABLE_CITIES } from '@/types';
+import { getPropertyTypes } from '@/utils/helpers';
 
 /**
  * @name ValidationMiddleware
@@ -48,4 +49,51 @@ export const validateSearchQueryParamMiddleware = (req: Request, res: Response, 
   } else {
     next();
   }
+};
+
+// add filters to search endpoints => property_type, area_min, area_max, price_min, price_max, bedrooms
+
+export const validateSearchFiltersMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+  if (req.query.property_type == null) {
+    req.query.property_type = '';
+  }
+  if (req.query.area_min == null) {
+    req.query.area_min = '0';
+  }
+  if (req.query.area_max == null) {
+    req.query.area_max = '';
+  }
+  if (req.query.price_min == null) {
+    req.query.price_min = '0';
+  }
+  if (req.query.price_max == null) {
+    req.query.price_max = '';
+  }
+  if (req.query.bedrooms == null) {
+    req.query.bedrooms = '';
+  }
+
+  const PROPERTY_TYPES = await getPropertyTypes();
+  const { property_type, area_min, area_max, price_min, price_max, bedrooms } = req.query as {
+    property_type: string;
+    area_min: string;
+    area_max: string;
+    price_min: string;
+    price_max: string;
+    bedrooms: string;
+  };
+
+  switch (true) {
+    case isNaN(Number(price_min)) || Number(price_min) < 0:
+    case price_max && (isNaN(Number(price_max)) || Number(price_max) < 0):
+      return res.status(400).json({ message: 'Invalid price parameters. Both price_min and price_max must be valid numbers.' });
+    case bedrooms && bedrooms.split(',').some(v => isNaN(Number(v))):
+      return res.status(400).json({ message: 'Invalid bedrooms parameter. It must be a valid number.' });
+    case property_type && !PROPERTY_TYPES.includes(property_type as string):
+      return res.status(400).json({ message: `Invalid property_type parameter. It must be one of following: ${PROPERTY_TYPES.join(', ')}` });
+    case isNaN(Number(area_min)) || Number(area_min) < 0:
+    case area_max && (isNaN(Number(area_max)) || Number(area_max) < 0):
+      return res.status(400).json({ message: 'Invalid area parameters. Both area_min and area_max must be valid numbers (in square feet).' });
+  }
+  next();
 };

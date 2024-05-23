@@ -27,7 +27,16 @@ export class PropertyService {
     return countResult[0]['total'];
   }
 
-  private constructBaseQuery(city?: string, search?: string): { baseQuery: string; replacements: any } {
+  private constructBaseQuery(
+    city?: string,
+    search?: string,
+    property_type?: string,
+    bedrooms?: string,
+    price_min?: string,
+    price_max?: string,
+    area_min?: string,
+    area_max?: string,
+  ): { baseQuery: string; replacements: any } {
     let baseQuery = `FROM property_v2 WHERE 1=1 `;
     const replacements: any = {};
 
@@ -37,8 +46,54 @@ export class PropertyService {
     }
 
     if (search) {
-      baseQuery += `AND ("desc" ILIKE :search OR header ILIKE :search OR location ILIKE :search OR price ILIKE :search OR bath ILIKE :search OR area ILIKE :search OR bedroom ILIKE :search OR type ILIKE :search OR purpose ILIKE :search OR initial_amount ILIKE :search OR monthly_installment ILIKE :search OR remaining_installments ILIKE :search) `;
+      baseQuery += `AND ("desc" ILIKE :search OR header ILIKE :search OR location ILIKE :search OR bath ILIKE :search OR area ILIKE :search OR purpose ILIKE :search OR initial_amount ILIKE :search OR monthly_installment ILIKE :search OR remaining_installments ILIKE :search) `;
       replacements.search = `%${search}%`;
+    }
+
+    if (property_type) {
+      baseQuery += `AND type = :property_type `;
+      replacements.property_type = property_type;
+    }
+
+    if (bedrooms) {
+      baseQuery += `AND bedroom IN (:bedrooms) `;
+      replacements.bedrooms = bedrooms.split(',');
+    }
+
+    if (price_min) {
+      baseQuery += `AND CAST(NULLIF(price, '') AS double precision) >= :price_min `;
+      replacements.price_min = Number(price_min);
+    }
+
+    if (price_max) {
+      baseQuery += `AND CAST(NULLIF(price, '') AS double precision) <= :price_max `;
+      replacements.price_max = Number(price_max);
+    }
+
+    if (area_min) {
+      baseQuery += `AND (
+          CASE 
+            WHEN area ILIKE '%kanal%' THEN CAST(SPLIT_PART(area, ' ', 1) AS double precision) * 4500
+            WHEN area ILIKE '%marla%' THEN CAST(SPLIT_PART(area, ' ', 1) AS double precision) * 225
+            WHEN area ILIKE '%sq. yd.%' THEN CAST(SPLIT_PART(area, ' ', 1) AS double precision) * 9
+            ELSE 0
+          END
+        )`;
+      baseQuery += ` >= :min_area `;
+      replacements.min_area = Number(area_min);
+    }
+
+    if (area_max) {
+      baseQuery += `AND (
+          CASE 
+            WHEN area ILIKE '%kanal%' THEN CAST(SPLIT_PART(area, ' ', 1) AS double precision) * 4500
+            WHEN area ILIKE '%marla%' THEN CAST(SPLIT_PART(area, ' ', 1) AS double precision) * 225
+            WHEN area ILIKE '%sq. yd.%' THEN CAST(SPLIT_PART(area, ' ', 1) AS double precision) * 9
+            ELSE 0
+          END
+        )`;
+      baseQuery += ` <= :max_area `;
+      replacements.max_area = Number(area_max);
     }
 
     return { baseQuery, replacements };
@@ -98,6 +153,12 @@ export class PropertyService {
     page_size = 10,
     sort_by = SORT_COLUMNS.ID,
     sort_order = SORT_ORDER.ASC,
+    property_type,
+    area_min,
+    area_max,
+    price_min,
+    price_max,
+    bedrooms,
   }: {
     city?: string;
     search: string;
@@ -105,10 +166,16 @@ export class PropertyService {
     page_size?: number;
     sort_by?: SORT_COLUMNS;
     sort_order?: SORT_ORDER;
+    property_type: string;
+    area_min: string;
+    area_max: string;
+    price_min: string;
+    price_max: string;
+    bedrooms: string;
   }): Promise<any> {
     this.validateSortParams(sort_by, sort_order);
 
-    const { baseQuery, replacements } = this.constructBaseQuery(city, search);
+    const { baseQuery, replacements } = this.constructBaseQuery(city, search, property_type, bedrooms, price_min, price_max, area_min, area_max);
     const totalCount = await this.getTotalCount(baseQuery, replacements);
 
     const sortColumn = this.getSortColumn(sort_by);
