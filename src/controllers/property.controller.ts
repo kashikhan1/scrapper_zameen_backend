@@ -53,12 +53,18 @@ export class PropertyController {
     }
   };
   public searchProperties = async (req: Request, res: Response, next: NextFunction) => {
-    const { query, page_number, page_size, sort_by, sort_order } = req.query as {
+    const { query, page_number, page_size, sort_by, sort_order, property_type, area_min, area_max, price_min, price_max, bedrooms } = req.query as {
       query: string;
       page_number: string;
       page_size: string;
       sort_by: SORT_COLUMNS;
       sort_order: SORT_ORDER;
+      property_type: string;
+      area_min: string;
+      area_max: string;
+      price_min: string;
+      price_max: string;
+      bedrooms: string;
     };
 
     try {
@@ -69,9 +75,18 @@ export class PropertyController {
         page_size: Number(page_size),
         sort_by: sort_by as SORT_COLUMNS,
         sort_order: sort_order as SORT_ORDER,
+        property_type,
+        area_min,
+        area_max,
+        price_min,
+        price_max,
+        bedrooms,
       });
 
-      res.json({ data: { ...properties, page_number, page_size }, message: 'search-properties' });
+      res.json({
+        data: { ...properties, page_number, page_size },
+        message: 'search-properties',
+      });
     } catch (error) {
       next(error);
     }

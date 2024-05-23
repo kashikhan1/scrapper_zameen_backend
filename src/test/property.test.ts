@@ -14,7 +14,7 @@ describe('Property', () => {
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
       expect(response.body.data.properties).toBeInstanceOf(Array);
-      expect(response.body.data).toHaveProperty('totalCount');
+      expect(response.body.data).toHaveProperty('total_count');
     });
 
     it('should retrieve properties with custom pagination', async () => {
@@ -23,7 +23,7 @@ describe('Property', () => {
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
       expect(response.body.data.properties).toBeInstanceOf(Array);
-      expect(response.body.data).toHaveProperty('totalCount');
+      expect(response.body.data).toHaveProperty('total_count');
     });
 
     it('should retrieve properties sorted by price in descending order', async () => {
@@ -32,7 +32,7 @@ describe('Property', () => {
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
       expect(response.body.data.properties).toBeInstanceOf(Array);
-      expect(response.body.data).toHaveProperty('totalCount');
+      expect(response.body.data).toHaveProperty('total_count');
       const prices = response.body.data.properties.map(property => Number(property.price));
       expect(prices).toEqual([...prices].sort((a, b) => b - a));
     });
@@ -96,7 +96,7 @@ describe('Property', () => {
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
       expect(response.body.data.properties).toBeInstanceOf(Array);
-      expect(response.body.data).toHaveProperty('totalCount');
+      expect(response.body.data).toHaveProperty('total_count');
       response.body.data.properties.forEach(property => {
         expect(property.location?.toLowerCase()?.includes('islamabad')).toBeTruthy();
       });
@@ -108,7 +108,7 @@ describe('Property', () => {
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
       expect(response.body.data.properties).toBeInstanceOf(Array);
-      expect(response.body.data).toHaveProperty('totalCount');
+      expect(response.body.data).toHaveProperty('total_count');
       response.body.data.properties.forEach(property => {
         expect(property.location?.toLowerCase()?.includes('islamabad')).toBeTruthy();
       });
@@ -120,7 +120,7 @@ describe('Property', () => {
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
       expect(response.body.data.properties).toBeInstanceOf(Array);
-      expect(response.body.data).toHaveProperty('totalCount');
+      expect(response.body.data).toHaveProperty('total_count');
       const prices = response.body.data.properties.map(property => Number(property.price));
       expect(prices).toEqual([...prices].sort((a, b) => b - a));
     });
@@ -139,7 +139,7 @@ describe('Property', () => {
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
       expect(response.body.data.properties).toBeInstanceOf(Array);
-      expect(response.body.data).toHaveProperty('totalCount');
+      expect(response.body.data).toHaveProperty('total_count');
     });
 
     it('should retrieve properties with custom pagination', async () => {
@@ -148,7 +148,7 @@ describe('Property', () => {
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
       expect(response.body.data.properties).toBeInstanceOf(Array);
-      expect(response.body.data).toHaveProperty('totalCount');
+      expect(response.body.data).toHaveProperty('total_count');
     });
 
     it('should retrieve properties sorted by price in descending order', async () => {
@@ -157,7 +157,7 @@ describe('Property', () => {
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
       expect(response.body.data.properties).toBeInstanceOf(Array);
-      expect(response.body.data).toHaveProperty('totalCount');
+      expect(response.body.data).toHaveProperty('total_count');
       const prices = response.body.data.properties.map(property => Number(property.price));
       expect(prices).toEqual([...prices].sort((a, b) => b - a));
     });
@@ -183,6 +183,26 @@ describe('Property', () => {
         expect(res.body).toHaveProperty('message', 'search-properties');
         expect(res.body.data).toBeInstanceOf(Object);
       });
+    });
+    it('should return 400 for invalid price_min parameter', async () => {
+      const response = await request(app).get('/property/search?price_min=-1');
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message');
+    });
+    it('should return 400 for invalid price_max parameter', async () => {
+      const response = await request(app).get('/property/search?price_max=-1');
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message');
+    });
+    it('should return 400 for invalid area_min parameter', async () => {
+      const response = await request(app).get('/property/search?area_min=-1');
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message');
+    });
+    it('should return 400 for invalid area_max parameter', async () => {
+      const response = await request(app).get('/property/search?area_max=-1');
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message');
     });
   });
 });
