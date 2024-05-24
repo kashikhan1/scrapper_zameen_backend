@@ -69,7 +69,7 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
   if (req.query.price_max == null) {
     req.query.price_max = '';
   }
-  if (req.query.bedrooms == null) {
+  if (req.query.bedrooms == null || req.query.bedrooms.toString().toLowerCase() === 'all') {
     req.query.bedrooms = '';
   }
 
