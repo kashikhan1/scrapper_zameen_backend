@@ -192,6 +192,36 @@ paths:
           type: string
           enum: [ASC, DESC]
           default: ASC
+        - name: property_type
+          in: query
+          description: Property Type
+          type: string
+          default: ""
+        - name: area_min
+          in: query
+          description: Minimum area in square feet
+          type: string
+          default: "0"
+        - name: area_max
+          in: query
+          description: Maximum area in square feet
+          type: string
+          default: ""
+        - name: price_min
+          in: query
+          description: Minimum price in PKR
+          type: string
+          default: "0"
+        - name: price_max
+          in: query
+          description: Maximum price in PKR
+          type: string
+          default: ""
+        - name: bedrooms
+          in: query
+          description: Number of bedrooms
+          type: string
+          default: ""
       responses:
         200:
           description: A list of properties
@@ -415,6 +445,36 @@ paths:
           type: string
           enum: [ASC, DESC]
           default: ASC
+        - name: property_type
+          in: query
+          description: Property Type
+          type: string
+          default: ""
+        - name: area_min
+          in: query
+          description: Minimum area in square feet
+          type: string
+          default: "0"
+        - name: area_max
+          in: query
+          description: Maximum area in square feet
+          type: string
+          default: ""
+        - name: price_min
+          in: query
+          description: Minimum price in PKR
+          type: string
+          default: "0"
+        - name: price_max
+          in: query
+          description: Maximum price in PKR
+          type: string
+          default: ""
+        - name: bedrooms
+          in: query
+          description: Number of bedrooms
+          type: string
+          default: ""
       responses:
         200:
           description: A list of properties
