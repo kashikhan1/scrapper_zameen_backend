@@ -46,7 +46,7 @@ export class PropertyService {
     }
 
     if (search) {
-      baseQuery += `AND ("desc" ILIKE :search OR header ILIKE :search OR location ILIKE :search OR bath ILIKE :search OR area ILIKE :search OR purpose ILIKE :search OR initial_amount ILIKE :search OR monthly_installment ILIKE :search OR remaining_installments ILIKE :search) `;
+      baseQuery += `AND (header ILIKE :search OR location ILIKE :search OR bath ILIKE :search OR purpose ILIKE :search OR initial_amount ILIKE :search OR monthly_installment ILIKE :search OR remaining_installments ILIKE :search) `;
       replacements.search = `%${search}%`;
     }
 
