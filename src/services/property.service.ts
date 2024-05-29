@@ -19,7 +19,7 @@ export class PropertyService {
   }
 
   private async getTotalCount(baseQuery: string, replacements: any): Promise<number> {
-    const countQuery = `SELECT COUNT(*) as total ${baseQuery}`;
+    const countQuery = `SELECT COUNT(*) as total ${baseQuery};`;
     const countResult = await sequelize.query(countQuery, {
       type: QueryTypes.SELECT,
       replacements,
@@ -73,9 +73,9 @@ export class PropertyService {
     if (area_min) {
       baseQuery += `AND (
           CASE 
-            WHEN area ILIKE '%kanal%' THEN CAST(SPLIT_PART(area, ' ', 1) AS double precision) * 4500
-            WHEN area ILIKE '%marla%' THEN CAST(SPLIT_PART(area, ' ', 1) AS double precision) * 225
-            WHEN area ILIKE '%sq. yd.%' THEN CAST(SPLIT_PART(area, ' ', 1) AS double precision) * 9
+            WHEN area ILIKE '%kanal%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 4500
+            WHEN area ILIKE '%marla%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 225
+            WHEN area ILIKE '%sq. yd.%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 9
             ELSE 0
           END
         )`;
@@ -86,9 +86,9 @@ export class PropertyService {
     if (area_max) {
       baseQuery += `AND (
           CASE 
-            WHEN area ILIKE '%kanal%' THEN CAST(SPLIT_PART(area, ' ', 1) AS double precision) * 4500
-            WHEN area ILIKE '%marla%' THEN CAST(SPLIT_PART(area, ' ', 1) AS double precision) * 225
-            WHEN area ILIKE '%sq. yd.%' THEN CAST(SPLIT_PART(area, ' ', 1) AS double precision) * 9
+            WHEN area ILIKE '%kanal%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 4500
+            WHEN area ILIKE '%marla%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 225
+            WHEN area ILIKE '%sq. yd.%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 9
             ELSE 0
           END
         )`;
