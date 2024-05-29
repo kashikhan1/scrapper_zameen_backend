@@ -253,6 +253,37 @@ paths:
       - property
       summary: Get total property count
       description: Retrieve the total count of properties.
+      parameters:
+        - name: query
+          in: query
+          description: Query to search for.
+          type: string
+          default: ''
+        - name: area_min
+          in: query
+          description: Minimum area in square feet
+          type: string
+          default: "0"
+        - name: area_max
+          in: query
+          description: Maximum area in square feet
+          type: string
+          default: ""
+        - name: price_min
+          in: query
+          description: Minimum price in PKR
+          type: string
+          default: "0"
+        - name: price_max
+          in: query
+          description: Maximum price in PKR
+          type: string
+          default: ""
+        - name: bedrooms
+          in: query
+          description: Number of bedrooms
+          type: string
+          default: ""
       responses:
         200:
           description: Total property count
@@ -260,13 +291,10 @@ paths:
             type: object
             properties:
               data:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    count:
-                      type: string
-                      example: "5040"
+                type: object
+                additionalProperties:
+                  type: string
+                  example: "5040"
               message:
                 type: string
                 example: "count"
@@ -282,6 +310,36 @@ paths:
           description: Name of the city to count properties for
           required: true
           type: string
+        - name: query
+          in: query
+          description: Query to search for.
+          type: string
+          default: ''
+        - name: area_min
+          in: query
+          description: Minimum area in square feet
+          type: string
+          default: "0"
+        - name: area_max
+          in: query
+          description: Maximum area in square feet
+          type: string
+          default: ""
+        - name: price_min
+          in: query
+          description: Minimum price in PKR
+          type: string
+          default: "0"
+        - name: price_max
+          in: query
+          description: Maximum price in PKR
+          type: string
+          default: ""
+        - name: bedrooms
+          in: query
+          description: Number of bedrooms
+          type: string
+          default: ""
       responses:
         200:
           description: Total property count
@@ -289,13 +347,10 @@ paths:
             type: object
             properties:
               data:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    count:
-                      type: string
-                      example: "5040"
+                type: object
+                additionalProperties:
+                  type: string
+                  example: "5040"
               message:
                 type: string
                 example: "count"

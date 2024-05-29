@@ -38,7 +38,23 @@ export class PropertyController {
   };
   public getPropertyCount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const propertyCount = await this.property.getPropertyCount({ city: req.params.city });
+      const { query, area_min, area_max, price_min, price_max, bedrooms } = req.query as {
+        query: string;
+        area_min: string;
+        area_max: string;
+        price_min: string;
+        price_max: string;
+        bedrooms: string;
+      };
+      const propertyCount = await this.property.getPropertiesCountMap({
+        city: req.params.city,
+        search: query,
+        area_min,
+        area_max,
+        price_min,
+        price_max,
+        bedrooms,
+      });
       res.status(200).json({ data: propertyCount, message: 'count' });
     } catch (error) {
       next(error);

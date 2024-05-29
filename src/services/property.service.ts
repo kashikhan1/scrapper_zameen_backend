@@ -2,6 +2,7 @@ import { Service } from 'typedi';
 import { QueryTypes } from 'sequelize';
 import { sequelize } from '@config/sequelize';
 import { AVAILABLE_CITIES, SORT_COLUMNS, SORT_ORDER } from '@/types';
+import { getPropertyTypes } from '@/utils/helpers';
 
 @Service()
 export class PropertyService {
@@ -27,16 +28,37 @@ export class PropertyService {
     return countResult[0]['total'];
   }
 
-  private constructBaseQuery(
-    city?: string,
-    search?: string,
-    property_type?: string,
-    bedrooms?: string,
-    price_min?: string,
-    price_max?: string,
-    area_min?: string,
-    area_max?: string,
-  ): { baseQuery: string; replacements: any } {
+  private async getTotalCountGroupedByTypes(baseQuery: string, replacements: any): Promise<{ [key: string]: number }> {
+    const countQuery = `SELECT type, COUNT(*) as total ${baseQuery} GROUP BY type;`;
+    const countResult = await sequelize.query(countQuery, {
+      type: QueryTypes.SELECT,
+      replacements,
+    });
+
+    return countResult.reduce<{ [key: string]: number }>((map, row: { type: string; total: number }) => {
+      map[row.type] = row.total;
+      return map;
+    }, {});
+  }
+  private constructBaseQuery({
+    city,
+    search,
+    property_types = [],
+    bedrooms,
+    price_min,
+    price_max,
+    area_min,
+    area_max,
+  }: {
+    city?: string;
+    search?: string;
+    property_types?: string[];
+    bedrooms?: string;
+    price_min?: string;
+    price_max?: string;
+    area_min?: string;
+    area_max?: string;
+  }): { baseQuery: string; replacements: any } {
     let baseQuery = `FROM property_v2 WHERE 1=1 `;
     const replacements: any = {};
 
@@ -50,9 +72,9 @@ export class PropertyService {
       replacements.search = `%${search}%`;
     }
 
-    if (property_type) {
-      baseQuery += `AND type = :property_type `;
-      replacements.property_type = property_type;
+    if (property_types.length > 0) {
+      baseQuery += `AND type IN (:property_types) `;
+      replacements.property_types = property_types;
     }
 
     if (bedrooms) {
@@ -113,7 +135,7 @@ export class PropertyService {
   }): Promise<any> {
     this.validateSortParams(sort_by, sort_order);
 
-    const { baseQuery, replacements } = this.constructBaseQuery(city);
+    const { baseQuery, replacements } = this.constructBaseQuery({ city });
     const totalCount = await this.getTotalCount(baseQuery, replacements);
 
     const sortColumn = this.getSortColumn(sort_by);
@@ -146,6 +168,38 @@ export class PropertyService {
   public async availableCitiesData() {
     return Object.values(AVAILABLE_CITIES);
   }
+  public async getPropertiesCountMap({
+    city,
+    search,
+    area_min,
+    area_max,
+    price_min,
+    price_max,
+    bedrooms,
+  }: {
+    city?: string;
+    search: string;
+    area_min: string;
+    area_max: string;
+    price_min: string;
+    price_max: string;
+    bedrooms: string;
+  }) {
+    const propertyTypes = await getPropertyTypes();
+
+    const { baseQuery, replacements } = this.constructBaseQuery({
+      city,
+      search,
+      property_types: propertyTypes,
+      bedrooms,
+      price_min,
+      price_max,
+      area_min,
+      area_max,
+    });
+    return await this.getTotalCountGroupedByTypes(baseQuery, replacements);
+  }
+
   public async searchProperties({
     city,
     search,
@@ -175,7 +229,16 @@ export class PropertyService {
   }): Promise<any> {
     this.validateSortParams(sort_by, sort_order);
 
-    const { baseQuery, replacements } = this.constructBaseQuery(city, search, property_type, bedrooms, price_min, price_max, area_min, area_max);
+    const { baseQuery, replacements } = this.constructBaseQuery({
+      city,
+      search,
+      property_types: property_type ? [property_type] : [],
+      bedrooms,
+      price_min,
+      price_max,
+      area_min,
+      area_max,
+    });
     const totalCount = await this.getTotalCount(baseQuery, replacements);
 
     const sortColumn = this.getSortColumn(sort_by);
