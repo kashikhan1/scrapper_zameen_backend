@@ -16,7 +16,7 @@ export class PropertyService {
   }
 
   private getSortColumn(sort_by: SORT_COLUMNS) {
-    return sort_by === SORT_COLUMNS.PRICE ? `CAST(NULLIF(price, '') AS double precision)` : sort_by;
+    return sort_by;
   }
 
   private async getTotalCount(baseQuery: string, replacements: any): Promise<number> {
@@ -83,12 +83,12 @@ export class PropertyService {
     }
 
     if (price_min) {
-      baseQuery += `AND CAST(NULLIF(price, '') AS double precision) >= :price_min `;
+      baseQuery += `AND price >= :price_min `;
       replacements.price_min = Number(price_min);
     }
 
     if (price_max) {
-      baseQuery += `AND CAST(NULLIF(price, '') AS double precision) <= :price_max `;
+      baseQuery += `AND price <= :price_max `;
       replacements.price_max = Number(price_max);
     }
 
@@ -252,6 +252,18 @@ export class PropertyService {
       type: QueryTypes.SELECT,
       replacements,
     });
-    return { properties, total_count: totalCount };
+    return {
+      properties,
+      total_count: totalCount,
+      property_count_map: await this.getPropertiesCountMap({
+        city,
+        search,
+        area_min,
+        area_max,
+        price_min,
+        price_max,
+        bedrooms,
+      }),
+    };
   }
 }
