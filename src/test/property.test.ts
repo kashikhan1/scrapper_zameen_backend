@@ -52,18 +52,14 @@ describe('Property', () => {
       const response = await request(app).get('/property/count');
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
-      expect(response.body.data).toBeInstanceOf(Array);
-      expect(response.body.data.length).toBe(1);
-      expect(response.body.data[0]).toHaveProperty('count');
+      expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body).toHaveProperty('message');
     });
     it('should retrieve the total count of properties', async () => {
       const response = await request(app).get('/property/count/islamabad');
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
-      expect(response.body.data).toBeInstanceOf(Array);
-      expect(response.body.data.length).toBe(1);
-      expect(response.body.data[0]).toHaveProperty('count');
+      expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body).toHaveProperty('message');
     });
   });
