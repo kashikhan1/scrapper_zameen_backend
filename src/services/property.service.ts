@@ -1,6 +1,7 @@
 import { Service } from 'typedi';
 import { QueryTypes } from 'sequelize';
 import { sequelize } from '@config/sequelize';
+import { POPULARITY_TREND_URL, AREA_TREND_URL } from '@config/index';
 import { AVAILABLE_CITIES, SORT_COLUMNS, SORT_ORDER } from '@/types';
 import { getPropertyTypes } from '@/utils/helpers';
 
@@ -18,7 +19,12 @@ export class PropertyService {
   private getSortColumn(sort_by: SORT_COLUMNS) {
     return sort_by;
   }
-
+  private mapProperties(properties: object[]) {
+    return properties.map((property: any) => {
+      const externalId = property?.url?.split('-').slice(-3)[0];
+      return { ...property, popularity_trends: `${POPULARITY_TREND_URL}${externalId}`, area_trends: `${AREA_TREND_URL}${externalId}` };
+    });
+  }
   private async getTotalCount(baseQuery: string, replacements: any): Promise<number> {
     const countQuery = `SELECT COUNT(*) as total ${baseQuery};`;
     const countResult = await sequelize.query(countQuery, {
@@ -149,7 +155,7 @@ export class PropertyService {
       type: QueryTypes.SELECT,
       replacements,
     });
-    return { properties, total_count: totalCount };
+    return { properties: this.mapProperties(properties), total_count: totalCount };
   }
   public async findPropertyById(propertyId: number) {
     return await sequelize.query(`SELECT * FROM property_v2 WHERE id = :propertyId`, {
@@ -253,7 +259,7 @@ export class PropertyService {
       replacements,
     });
     return {
-      properties,
+      properties: this.mapProperties(properties),
       total_count: totalCount,
       property_count_map: await this.getPropertiesCountMap({
         city,

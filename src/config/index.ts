@@ -14,5 +14,7 @@ export const {
   POSTGRES_PASSWORD,
   POSTGRES_HOST,
   SESSION_SECRET_KEY,
+  ZAMEEN_BASE_URL,
+  POPULARITY_TREND_URL,
 } = process.env;
 export const POSTGRES_PORT = parseInt(process.env.POSTGRES_PORT, 10);
