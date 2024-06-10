@@ -222,6 +222,16 @@ paths:
           description: Number of bedrooms
           type: string
           default: ""
+        - name: start_date
+          in: query
+          description: Properties inserted from this date (inclusive). Date should be in ISO date string format.
+          type: string
+          default: ""
+        - name: end_date
+          in: query
+          description: Properties inserted until this date (exclusive). Date should be in ISO date string format.
+          type: string
+          default: ""
       responses:
         200:
           description: A list of properties
@@ -284,6 +294,16 @@ paths:
           description: Number of bedrooms
           type: string
           default: ""
+        - name: start_date
+          in: query
+          description: Properties inserted from this date (inclusive). Date should be in ISO date string format.
+          type: string
+          default: ""
+        - name: end_date
+          in: query
+          description: Properties inserted until this date (exclusive). Date should be in ISO date string format.
+          type: string
+          default: ""
       responses:
         200:
           description: Total property count
@@ -338,6 +358,16 @@ paths:
         - name: bedrooms
           in: query
           description: Number of bedrooms
+          type: string
+          default: ""
+        - name: start_date
+          in: query
+          description: Properties inserted from this date (inclusive). Date should be in ISO date string format.
+          type: string
+          default: ""
+        - name: end_date
+          in: query
+          description: Properties inserted until this date (exclusive). Date should be in ISO date string format.
           type: string
           default: ""
       responses:
@@ -528,6 +558,16 @@ paths:
         - name: bedrooms
           in: query
           description: Number of bedrooms
+          type: string
+          default: ""
+        - name: start_date
+          in: query
+          description: Properties inserted from this date (inclusive). Date should be in ISO date string format.
+          type: string
+          default: ""
+        - name: end_date
+          in: query
+          description: Properties inserted until this date (exclusive). Date should be in ISO date string format.
           type: string
           default: ""
       responses:
