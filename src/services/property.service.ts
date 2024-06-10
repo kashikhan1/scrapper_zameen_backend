@@ -55,6 +55,8 @@ export class PropertyService {
     price_max,
     area_min,
     area_max,
+    start_date,
+    end_date,
   }: {
     city?: string;
     search?: string;
@@ -64,6 +66,8 @@ export class PropertyService {
     price_max?: string;
     area_min?: string;
     area_max?: string;
+    start_date?: string;
+    end_date?: string;
   }): { baseQuery: string; replacements: any } {
     let baseQuery = `FROM property_v2 WHERE 1=1 `;
     const replacements: any = {};
@@ -122,6 +126,16 @@ export class PropertyService {
         )`;
       baseQuery += ` <= :max_area `;
       replacements.max_area = Number(area_max);
+    }
+    const MILLISECONDS_PER_SECOND = 1000;
+    if (start_date) {
+      baseQuery += `AND added >= :start_date `;
+      replacements.start_date = Date.parse(start_date) / MILLISECONDS_PER_SECOND;
+    }
+
+    if (end_date) {
+      baseQuery += `AND added < :end_date `;
+      replacements.end_date = Date.parse(end_date) / MILLISECONDS_PER_SECOND;
     }
 
     return { baseQuery, replacements };
@@ -182,6 +196,8 @@ export class PropertyService {
     price_min,
     price_max,
     bedrooms,
+    start_date,
+    end_date,
   }: {
     city?: string;
     search: string;
@@ -190,6 +206,8 @@ export class PropertyService {
     price_min: string;
     price_max: string;
     bedrooms: string;
+    start_date: string;
+    end_date: string;
   }) {
     const propertyTypes = await getPropertyTypes();
 
@@ -202,6 +220,8 @@ export class PropertyService {
       price_max,
       area_min,
       area_max,
+      start_date,
+      end_date,
     });
     return await this.getTotalCountGroupedByTypes(baseQuery, replacements);
   }
@@ -219,6 +239,8 @@ export class PropertyService {
     price_min,
     price_max,
     bedrooms,
+    start_date,
+    end_date,
   }: {
     city?: string;
     search: string;
@@ -232,6 +254,8 @@ export class PropertyService {
     price_min: string;
     price_max: string;
     bedrooms: string;
+    start_date: string;
+    end_date: string;
   }): Promise<any> {
     this.validateSortParams(sort_by, sort_order);
 
@@ -244,6 +268,8 @@ export class PropertyService {
       price_max,
       area_min,
       area_max,
+      start_date,
+      end_date,
     });
     const totalCount = await this.getTotalCount(baseQuery, replacements);
 
@@ -269,6 +295,8 @@ export class PropertyService {
         price_min,
         price_max,
         bedrooms,
+        start_date,
+        end_date,
       }),
     };
   }
