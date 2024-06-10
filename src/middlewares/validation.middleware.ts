@@ -72,15 +72,22 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
   if (req.query.bedrooms == null || req.query.bedrooms.toString().toLowerCase() === 'all') {
     req.query.bedrooms = '';
   }
-
+  if (req.query.start_date == null) {
+    req.query.start_date = '';
+  }
+  if (req.query.end_date == null) {
+    req.query.end_date = '';
+  }
   const PROPERTY_TYPES = await getPropertyTypes();
-  const { property_type, area_min, area_max, price_min, price_max, bedrooms } = req.query as {
+  const { property_type, area_min, area_max, price_min, price_max, bedrooms, start_date, end_date } = req.query as {
     property_type: string;
     area_min: string;
     area_max: string;
     price_min: string;
     price_max: string;
     bedrooms: string;
+    start_date: string;
+    end_date: string;
   };
 
   switch (true) {
@@ -94,6 +101,10 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
     case isNaN(Number(area_min)) || Number(area_min) < 0:
     case area_max && (isNaN(Number(area_max)) || Number(area_max) < 0):
       return res.status(400).json({ message: 'Invalid area parameters. Both area_min and area_max must be valid numbers (in square feet).' });
+    case start_date && isNaN(Date.parse(start_date)):
+      return res.status(400).json({ message: 'Invalid start_date parameter. It must be a valid date in iso string format.' });
+    case end_date && isNaN(Date.parse(end_date)):
+      return res.status(400).json({ message: 'Invalid end_date parameter. It must be a valid date in iso string format.' });
   }
   next();
 };

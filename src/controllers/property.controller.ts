@@ -38,13 +38,15 @@ export class PropertyController {
   };
   public getPropertyCount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { query, area_min, area_max, price_min, price_max, bedrooms } = req.query as {
+      const { query, area_min, area_max, price_min, price_max, bedrooms, start_date, end_date } = req.query as {
         query: string;
         area_min: string;
         area_max: string;
         price_min: string;
         price_max: string;
         bedrooms: string;
+        start_date: string;
+        end_date: string;
       };
       const propertyCount = await this.property.getPropertiesCountMap({
         city: req.params.city,
@@ -54,6 +56,8 @@ export class PropertyController {
         price_min,
         price_max,
         bedrooms,
+        start_date,
+        end_date,
       });
       res.status(200).json({ data: propertyCount, message: 'count' });
     } catch (error) {
@@ -69,7 +73,21 @@ export class PropertyController {
     }
   };
   public searchProperties = async (req: Request, res: Response, next: NextFunction) => {
-    const { query, page_number, page_size, sort_by, sort_order, property_type, area_min, area_max, price_min, price_max, bedrooms } = req.query as {
+    const {
+      query,
+      page_number,
+      page_size,
+      sort_by,
+      sort_order,
+      property_type,
+      area_min,
+      area_max,
+      price_min,
+      price_max,
+      bedrooms,
+      start_date,
+      end_date,
+    } = req.query as {
       query: string;
       page_number: string;
       page_size: string;
@@ -81,6 +99,8 @@ export class PropertyController {
       price_min: string;
       price_max: string;
       bedrooms: string;
+      start_date: string;
+      end_date: string;
     };
 
     try {
@@ -97,6 +117,8 @@ export class PropertyController {
         price_min,
         price_max,
         bedrooms,
+        start_date,
+        end_date,
       });
 
       res.json({
