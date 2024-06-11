@@ -655,6 +655,25 @@ definitions:
         type: string
         format: uri
         example: 'http://example.com/property/1'
+      area_trends:
+        type: string
+        format: uri
+        example: 'http://example.com/property/1'
+      popularity_trends:
+        type: string
+        format: uri
+        example: 'http://example.com/property/1'
+      contact:
+        type: string
+        format: uri
+        example: 'http://example.com/property/1'
+      cover_photo_url:
+        type: string
+        format: uri
+        example: 'http://example.com/property/1.jpg'
+      external_id:
+        type: string
+        example: "123456789"
       initial_amount:
         type: string
         maxLength: 255
