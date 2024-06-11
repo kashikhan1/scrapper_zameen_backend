@@ -26,7 +26,7 @@ export class PropertyService {
         ...property,
         popularity_trends: `${POPULARITY_TREND_URL}${externalId}`,
         area_trends: `${AREA_TREND_URL}${externalId}`,
-        externalId,
+        external_id: externalId,
         contact: `${CONTACT_URL}${externalId}`,
       };
     });
