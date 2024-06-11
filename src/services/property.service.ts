@@ -1,7 +1,7 @@
 import { Service } from 'typedi';
 import { QueryTypes } from 'sequelize';
 import { sequelize } from '@config/sequelize';
-import { POPULARITY_TREND_URL, AREA_TREND_URL } from '@config/index';
+import { POPULARITY_TREND_URL, AREA_TREND_URL, CONTACT_URL } from '@config/index';
 import { AVAILABLE_CITIES, SORT_COLUMNS, SORT_ORDER } from '@/types';
 import { getPropertyTypes } from '@/utils/helpers';
 
@@ -22,7 +22,13 @@ export class PropertyService {
   private mapProperties(properties: object[]) {
     return properties.map((property: any) => {
       const externalId = property?.url?.split('-').slice(-3)[0];
-      return { ...property, popularity_trends: `${POPULARITY_TREND_URL}${externalId}`, area_trends: `${AREA_TREND_URL}${externalId}` };
+      return {
+        ...property,
+        popularity_trends: `${POPULARITY_TREND_URL}${externalId}`,
+        area_trends: `${AREA_TREND_URL}${externalId}`,
+        externalId,
+        contact: `${CONTACT_URL}${externalId}`,
+      };
     });
   }
   private async getTotalCount(baseQuery: string, replacements: any): Promise<number> {
