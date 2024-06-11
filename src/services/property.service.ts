@@ -178,10 +178,12 @@ export class PropertyService {
     return { properties: this.mapProperties(properties), total_count: totalCount };
   }
   public async findPropertyById(propertyId: number) {
-    return await sequelize.query(`SELECT * FROM property_v2 WHERE id = :propertyId`, {
+    const property = await sequelize.query(`SELECT * FROM property_v2 WHERE id = :propertyId`, {
       type: QueryTypes.SELECT,
       replacements: { propertyId },
     });
+
+    return this.mapProperties(property);
   }
   public async getPropertyCount({ city }: { city?: string }) {
     const query = city ? `SELECT COUNT(*) FROM property_v2 WHERE location ILIKE :city;` : `SELECT COUNT(*) FROM property_v2;`;
