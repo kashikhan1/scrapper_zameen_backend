@@ -491,6 +491,93 @@ paths:
               message:
                 type: string
                 example: "findAll"
+  /property/featured:
+    get:
+      tags:
+      - property
+      summary: Retrieve featured properties
+      parameters:
+        - name: page_size
+          in: query
+          description: Number of items per page
+          type: integer
+          default: 10
+        - name: page_number
+          in: query
+          description: Page number
+          type: integer
+          default: 1
+      responses:
+        200:
+          description: A list of properties
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  page_number:
+                    type: string
+                    example: "1"
+                  page_size:
+                    type: string
+                    example: "10"
+                  total_count:
+                    type: string
+                    example: "5040"
+                  properties:
+                    type: array
+                    items:
+                      $ref: '#/definitions/Property'
+              message:
+                type: string
+                example: "featured-properties"
+  /property/similar:
+    get:
+      tags:
+      - property
+      summary: Retrive similar properties
+      parameters:
+        - name: id
+          in: query
+          type: integer
+          required: true
+          description: ID of the property to retrieve similar properties for
+        - name: page_size
+          in: query
+          description: Number of items per page
+          type: integer
+          default: 10
+        - name: page_number
+          in: query
+          description: Page number
+          type: integer
+          default: 1
+      responses:
+        200:
+          description: A list of properties
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  page_number:
+                    type: string
+                    example: "1"
+                  page_size:
+                    type: string
+                    example: "10"
+                  total_count:
+                    type: string
+                    example: "5040"
+                  properties:
+                    type: array
+                    items:
+                      $ref: '#/definitions/Property'
+              message:
+                type: string
+                example: "similar-properties"
   /property/search/{city}:
     get:
       tags:
@@ -696,6 +783,17 @@ definitions:
         type: string
         maxLength: 255
         example: 'Apartment'
+      features:
+        type: array
+        items:
+          type: object
+          properties:
+            category:
+              type: string
+            features:
+              type: array
+              items:
+                type: string
     required:
       - id
       - added
