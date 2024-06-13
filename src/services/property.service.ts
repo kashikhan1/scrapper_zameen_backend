@@ -208,14 +208,14 @@ export class PropertyService {
     end_date,
   }: {
     city?: string;
-    search: string;
-    area_min: string;
-    area_max: string;
-    price_min: string;
-    price_max: string;
-    bedrooms: string;
-    start_date: string;
-    end_date: string;
+    search?: string;
+    area_min?: string;
+    area_max?: string;
+    price_min?: string;
+    price_max?: string;
+    bedrooms?: string;
+    start_date?: string;
+    end_date?: string;
   }) {
     const propertyTypes = await getPropertyTypes();
 
@@ -251,19 +251,19 @@ export class PropertyService {
     end_date,
   }: {
     city?: string;
-    search: string;
+    search?: string;
     page_number: number;
     page_size?: number;
     sort_by?: SORT_COLUMNS;
     sort_order?: SORT_ORDER;
-    property_type: string;
-    area_min: string;
-    area_max: string;
-    price_min: string;
-    price_max: string;
-    bedrooms: string;
-    start_date: string;
-    end_date: string;
+    property_type?: string;
+    area_min?: string;
+    area_max?: string;
+    price_min?: string;
+    price_max?: string;
+    bedrooms?: string;
+    start_date?: string;
+    end_date?: string;
   }): Promise<any> {
     this.validateSortParams(sort_by, sort_order);
 

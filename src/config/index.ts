@@ -18,5 +18,6 @@ export const {
   POPULARITY_TREND_URL,
   AREA_TREND_URL,
   CONTACT_URL,
+  FEATURED_PROPERTY_PRICE_THRESHOLD,
 } = process.env;
 export const POSTGRES_PORT = parseInt(process.env.POSTGRES_PORT, 10);

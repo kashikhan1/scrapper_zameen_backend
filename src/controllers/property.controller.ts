@@ -2,6 +2,7 @@ import { Container } from 'typedi';
 import { NextFunction, Request, Response } from 'express';
 import { PropertyService } from '@/services/property.service';
 import { SORT_COLUMNS, SORT_ORDER } from '@/types';
+import { FEATURED_PROPERTY_PRICE_THRESHOLD } from '@config/index';
 
 export class PropertyController {
   public property = Container.get(PropertyService);
@@ -125,6 +126,23 @@ export class PropertyController {
         data: { ...properties, page_number, page_size },
         message: 'search-properties',
       });
+    } catch (error) {
+      next(error);
+    }
+  };
+  public getFeaturedProperties = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { page_number, page_size } = req.query as {
+        page_number: string;
+        page_size: string;
+      };
+      const featuredProperties = await this.property.searchProperties({
+        page_number: Number(page_number),
+        page_size: Number(page_size),
+        sort_by: SORT_COLUMNS.PRICE,
+        price_min: FEATURED_PROPERTY_PRICE_THRESHOLD,
+      });
+      res.status(200).json({ data: { ...featuredProperties, page_number, page_size }, message: 'featured-properties' });
     } catch (error) {
       next(error);
     }
