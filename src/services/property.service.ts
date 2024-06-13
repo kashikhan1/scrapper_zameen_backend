@@ -4,6 +4,7 @@ import { sequelize } from '@config/sequelize';
 import { POPULARITY_TREND_URL, AREA_TREND_URL, CONTACT_URL } from '@config/index';
 import { AVAILABLE_CITIES, SORT_COLUMNS, SORT_ORDER } from '@/types';
 import { getPropertyTypes } from '@/utils/helpers';
+import axios, { AxiosResponse } from 'axios';
 
 @Service()
 export class PropertyService {
@@ -19,17 +20,31 @@ export class PropertyService {
   private getSortColumn(sort_by: SORT_COLUMNS) {
     return sort_by;
   }
-  private mapProperties(properties: object[]) {
-    return properties.map((property: any) => {
-      const externalId = property?.url?.split('-').slice(-3)[0];
-      return {
-        ...property,
-        popularity_trends: `${POPULARITY_TREND_URL}${externalId}`,
-        area_trends: `${AREA_TREND_URL}${externalId}`,
-        external_id: externalId,
-        contact: `${CONTACT_URL}${externalId}`,
-      };
-    });
+  private async mapProperties(properties: object[]) {
+    const promises = await Promise.allSettled(
+      properties.map(async (property: any) => {
+        const externalId = property?.url?.split('-').slice(-3)[0];
+        const [popularity_trends, area_trends, contact] = await Promise.allSettled([
+          axios.get(`${POPULARITY_TREND_URL}${externalId}`),
+          axios.get(`${AREA_TREND_URL}${externalId}`),
+          axios.get(`${CONTACT_URL}${externalId}`),
+        ]);
+        const formatResponse = (response: PromiseSettledResult<AxiosResponse>) => {
+          if (response.status === 'fulfilled') {
+            return response.value.data;
+          }
+          return null;
+        };
+        return {
+          ...property,
+          popularity_trends: formatResponse(popularity_trends),
+          area_trends: formatResponse(area_trends),
+          external_id: externalId,
+          contact: formatResponse(contact),
+        };
+      }),
+    );
+    return promises.map(promise => (promise.status === 'fulfilled' ? promise.value : null)).filter(v => v != null);
   }
   private async getTotalCount(baseQuery: string, replacements: any): Promise<number> {
     const countQuery = `SELECT COUNT(*) as total ${baseQuery};`;
@@ -175,7 +190,7 @@ export class PropertyService {
       type: QueryTypes.SELECT,
       replacements,
     });
-    return { properties: this.mapProperties(properties), total_count: totalCount };
+    return { properties: await this.mapProperties(properties), total_count: totalCount };
   }
   public async findPropertyById(propertyId: number) {
     const property = await sequelize.query(`SELECT * FROM property_v2 WHERE id = :propertyId`, {
@@ -183,7 +198,7 @@ export class PropertyService {
       replacements: { propertyId },
     });
 
-    return this.mapProperties(property);
+    return await this.mapProperties(property);
   }
   public async getPropertyCount({ city }: { city?: string }) {
     const query = city ? `SELECT COUNT(*) FROM property_v2 WHERE location ILIKE :city;` : `SELECT COUNT(*) FROM property_v2;`;
@@ -293,7 +308,7 @@ export class PropertyService {
       replacements,
     });
     return {
-      properties: this.mapProperties(properties),
+      properties: await this.mapProperties(properties),
       total_count: totalCount,
       property_count_map: await this.getPropertiesCountMap({
         city,
