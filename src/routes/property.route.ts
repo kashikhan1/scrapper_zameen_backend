@@ -1,7 +1,12 @@
 import { Router } from 'express';
 import { Routes } from '@interfaces/routes.interface';
 import { PropertyController } from '@/controllers/property.controller';
-import { validateCityParam, validateSearchQueryParamMiddleware, validateSearchFiltersMiddleware } from '@/middlewares/validation.middleware';
+import {
+  validateCityParam,
+  validateSearchQueryParamMiddleware,
+  validateSearchFiltersMiddleware,
+  validatePropertyId,
+} from '@/middlewares/validation.middleware';
 import { validatePaginationParamsMiddleware, validateSortParamsMiddleware } from '@/middlewares/pagination.middleware';
 
 export class PropertyRoute implements Routes {
@@ -18,6 +23,7 @@ export class PropertyRoute implements Routes {
     this.router.get(`${this.path}/count`, validateSearchQueryParamMiddleware, validateSearchFiltersMiddleware, this.property.getPropertyCount);
     this.router.get(`${this.path}/available-cities`, this.property.getAvailableCities);
     this.router.get(`${this.path}/featured`, validatePaginationParamsMiddleware, this.property.getFeaturedProperties);
+    this.router.get(`${this.path}/similar`, validatePaginationParamsMiddleware, validatePropertyId, this.property.getSimilarProperties);
     this.router.get(
       `${this.path}/search`,
       validateSearchQueryParamMiddleware,
