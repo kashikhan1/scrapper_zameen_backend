@@ -108,3 +108,12 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
   }
   next();
 };
+
+export const validatePropertyId = (req: Request, res: Response, next: NextFunction) => {
+  const { id } = req.query as { id: string };
+  if (isNaN(Number(id))) {
+    res.status(400).json({ message: 'Invalid property id parameter. It must be a valid number.' });
+  } else {
+    next();
+  }
+};

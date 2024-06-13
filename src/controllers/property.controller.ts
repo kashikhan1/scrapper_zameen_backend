@@ -147,4 +147,24 @@ export class PropertyController {
       next(error);
     }
   };
+  public getSimilarProperties = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { page_number, page_size, id } = req.query as {
+        id: string;
+        page_size: string;
+        page_number: string;
+      };
+      const property = await this.property.findPropertyById(Number(id));
+      const similarProperties = await this.property.searchProperties({
+        page_number: Number(page_number),
+        page_size: Number(page_size),
+        sort_by: SORT_COLUMNS.ID,
+        search: property[0].location,
+        property_type: property[0].type,
+      });
+      res.status(200).json({ data: { ...similarProperties, page_number, page_size }, message: 'similar-properties' });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
