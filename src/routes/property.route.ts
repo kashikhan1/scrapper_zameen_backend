@@ -17,6 +17,7 @@ export class PropertyRoute implements Routes {
     this.router.get(`${this.path}`, validatePaginationParamsMiddleware, validateSortParamsMiddleware, this.property.getProperties);
     this.router.get(`${this.path}/count`, validateSearchQueryParamMiddleware, validateSearchFiltersMiddleware, this.property.getPropertyCount);
     this.router.get(`${this.path}/available-cities`, this.property.getAvailableCities);
+    this.router.get(`${this.path}/featured`, validatePaginationParamsMiddleware, this.property.getFeaturedProperties);
     this.router.get(
       `${this.path}/search`,
       validateSearchQueryParamMiddleware,
