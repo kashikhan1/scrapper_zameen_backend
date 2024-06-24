@@ -2,7 +2,7 @@ import { Service } from 'typedi';
 import { QueryTypes } from 'sequelize';
 import { sequelize } from '@config/sequelize';
 import { POPULARITY_TREND_URL, AREA_TREND_URL, CONTACT_URL } from '@config/index';
-import { AVAILABLE_CITIES, SORT_COLUMNS, SORT_ORDER } from '@/types';
+import { AVAILABLE_CITIES, IProperty, SORT_COLUMNS, SORT_ORDER } from '@/types';
 import { getPropertyTypes } from '@/utils/helpers';
 import axios, { AxiosResponse } from 'axios';
 
@@ -20,7 +20,19 @@ export class PropertyService {
   private getSortColumn(sort_by: SORT_COLUMNS) {
     return sort_by;
   }
-  private async mapProperties(properties: object[]) {
+
+  private mapProperties(properties: IProperty[]) {
+    return properties.map(({ id, desc, header, type, price, cover_photo_url, available }: IProperty) => ({
+      id,
+      desc,
+      header,
+      type,
+      price,
+      cover_photo_url,
+      available,
+    }));
+  }
+  private async mapPropertiesDetails(properties: object[]) {
     const promises = await Promise.allSettled(
       properties.map(async (property: any) => {
         const externalId = property?.url?.split('-').slice(-3)[0];
@@ -186,7 +198,7 @@ export class PropertyService {
     replacements.page_size = page_size;
     replacements.offset = offset;
 
-    const properties = await sequelize.query(query, {
+    const properties = await sequelize.query<IProperty>(query, {
       type: QueryTypes.SELECT,
       replacements,
     });
@@ -198,7 +210,7 @@ export class PropertyService {
       replacements: { propertyId },
     });
 
-    return await this.mapProperties(property);
+    return await this.mapPropertiesDetails(property);
   }
   public async getPropertyCount({ city }: { city?: string }) {
     const query = city ? `SELECT COUNT(*) FROM property_v2 WHERE location ILIKE :city;` : `SELECT COUNT(*) FROM property_v2;`;
@@ -303,7 +315,7 @@ export class PropertyService {
     replacements.page_size = page_size;
     replacements.offset = offset;
 
-    const properties = await sequelize.query(query, {
+    const properties = await sequelize.query<IProperty>(query, {
       type: QueryTypes.SELECT,
       replacements,
     });
