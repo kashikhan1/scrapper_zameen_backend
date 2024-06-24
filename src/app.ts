@@ -90,6 +90,7 @@ export class App {
           version: '1.0.0',
           description: 'Example docs',
         },
+        basePath: '/api/server',
       },
       apis: ['swagger.yaml'],
     };
