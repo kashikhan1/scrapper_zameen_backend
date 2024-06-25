@@ -5,6 +5,7 @@ import { App } from '@/app';
 import { PropertyRoute } from '@routes/property.route';
 import { PropertyService } from '@/services/property.service';
 import { getPropertyTypes } from '@/utils/helpers';
+import { AVAILABLE_CITIES } from '@/types';
 
 jest.mock('@/services/property.service');
 jest.mock('@/utils/helpers', () => ({
@@ -119,15 +120,21 @@ describe('Property', () => {
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
     });
+    it('Should return error', async () => {
+      propertyServiceMock.findAllProperties.mockRejectedValue('Error');
+      const response = await request(app).get('/property');
+      expect(response.status).toBe(500);
+      expect(response.body).toHaveProperty('message');
+    });
   });
   describe('GET /property/count', () => {
-    propertyServiceMock.getPropertiesCountMap.mockResolvedValue({
-      'Agricultural Land': 76,
-      Building: 2618,
-      'Commercial Plot': 2768,
-      Factory: 558,
-    });
     it('should retrieve the total count of properties', async () => {
+      propertyServiceMock.getPropertiesCountMap.mockResolvedValue({
+        'Agricultural Land': 76,
+        Building: 2618,
+        'Commercial Plot': 2768,
+        Factory: 558,
+      });
       const response = await request(app).get('/property/count');
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
@@ -135,10 +142,22 @@ describe('Property', () => {
       expect(response.body).toHaveProperty('message');
     });
     it('should retrieve the total count of properties', async () => {
+      propertyServiceMock.getPropertiesCountMap.mockResolvedValue({
+        'Agricultural Land': 76,
+        Building: 2618,
+        'Commercial Plot': 2768,
+        Factory: 558,
+      });
       const response = await request(app).get('/property/count/islamabad');
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
       expect(response.body.data).toBeInstanceOf(Object);
+      expect(response.body).toHaveProperty('message');
+    });
+    it('Should return error', async () => {
+      propertyServiceMock.getPropertiesCountMap.mockRejectedValue('Error');
+      const response = await request(app).get('/property/count');
+      expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('message');
     });
   });
@@ -162,6 +181,12 @@ describe('Property', () => {
       expect(response.body).toHaveProperty('message', 'findOne');
       expect(response.body.data).toBeInstanceOf(Array);
       expect(response.body.data).toHaveLength(0);
+    });
+    it('Should return error', async () => {
+      propertyServiceMock.findPropertyById.mockRejectedValue('Error');
+      const response = await request(app).get('/property/1');
+      expect(response.status).toBe(500);
+      expect(response.body).toHaveProperty('message');
     });
   });
   describe('GET /property/:city', () => {
@@ -262,6 +287,12 @@ describe('Property', () => {
     it('should return no data for invalid city name', async () => {
       const response = await request(app).get('/property/invalid city name');
       expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message');
+    });
+    it('Should return error', async () => {
+      propertyServiceMock.findAllProperties.mockRejectedValue('Error');
+      const response = await request(app).get('/property/islamabad');
+      expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('message');
     });
   });
@@ -427,6 +458,126 @@ describe('Property', () => {
     it('should return 400 for invalid area_max parameter', async () => {
       const response = await request(app).get('/property/search?area_max=-1');
       expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message');
+    });
+    it('Should return error', async () => {
+      propertyServiceMock.searchProperties.mockRejectedValue('Error');
+      const response = await request(app).get('/property/search?query=islamabad');
+      expect(response.status).toBe(500);
+      expect(response.body).toHaveProperty('message');
+    });
+  });
+  describe('GET /property/available-cities', () => {
+    it('Should return available cities list', async () => {
+      propertyServiceMock.availableCitiesData.mockResolvedValue(Object.values(AVAILABLE_CITIES));
+      const response = await request(app).get('/property/available-cities');
+      expect(response.status).toBe(200);
+      expect(response.body.data).toBeInstanceOf(Array);
+      expect(response.body).toHaveProperty('message', 'available-cities');
+    });
+    it('Should return error', async () => {
+      propertyServiceMock.availableCitiesData.mockRejectedValue('Error occured!');
+      const response = await request(app).get('/property/available-cities');
+      expect(response.status).toBe(500);
+      expect(response.body).toHaveProperty('message');
+    });
+  });
+  describe('GET /property/featured', () => {
+    it('Should return featured properties', async () => {
+      propertyServiceMock.searchProperties.mockResolvedValue({
+        total_count: 2,
+        properties: [
+          {
+            id: 1,
+            desc: 'description',
+            header: 'Header',
+            type: 'House',
+            price: 95000000,
+            cover_photo_url: 'cover_photo_url.jpeg',
+            available: true,
+            area: '20 Marla',
+            location: 'Islamabad',
+          },
+          {
+            id: 1,
+            desc: 'description',
+            header: 'Header',
+            type: 'House',
+            price: 9000000,
+            cover_photo_url: 'cover_photo_url.jpeg',
+            available: true,
+            area: '5 Marla',
+            location: 'Islamabad',
+          },
+        ],
+      });
+      const response = await request(app).get('/property/featured');
+      expect(response.status).toBe(200);
+      expect(response.body.data).toBeInstanceOf(Object);
+      expect(response.body.data).toHaveProperty('properties');
+      expect(response.body.data.properties).toBeInstanceOf(Array);
+      expect(response.body.data).toHaveProperty('total_count');
+    });
+    it('Should return error', async () => {
+      propertyServiceMock.searchProperties.mockRejectedValue('Error');
+      const response = await request(app).get('/property/featured');
+      expect(response.status).toBe(500);
+      expect(response.body).toHaveProperty('message');
+    });
+  });
+  describe('GET /property/similar', () => {
+    it('Should return featured properties', async () => {
+      propertyServiceMock.findPropertyById.mockResolvedValue([
+        {
+          id: 1,
+          desc: 'description',
+          header: 'Header',
+          type: 'House',
+          price: 95000000,
+          cover_photo_url: 'cover_photo_url.jpeg',
+          available: true,
+          area: '20 Marla',
+          location: 'Islamabad',
+        },
+      ]);
+      propertyServiceMock.searchProperties.mockResolvedValue({
+        total_count: 2,
+        properties: [
+          {
+            id: 1,
+            desc: 'description',
+            header: 'Header',
+            type: 'House',
+            price: 95000000,
+            cover_photo_url: 'cover_photo_url.jpeg',
+            available: true,
+            area: '20 Marla',
+            location: 'Islamabad',
+          },
+          {
+            id: 1,
+            desc: 'description',
+            header: 'Header',
+            type: 'House',
+            price: 9000000,
+            cover_photo_url: 'cover_photo_url.jpeg',
+            available: true,
+            area: '5 Marla',
+            location: 'Islamabad',
+          },
+        ],
+      });
+      const response = await request(app).get('/property/similar?id=1');
+      expect(response.status).toBe(200);
+      expect(response.body.data).toBeInstanceOf(Object);
+      expect(response.body.data).toHaveProperty('properties');
+      expect(response.body.data.properties).toBeInstanceOf(Array);
+      expect(response.body.data).toHaveProperty('total_count');
+    });
+    it('Should return error', async () => {
+      propertyServiceMock.searchProperties.mockRejectedValue(new Error('This should not be done!'));
+      const response = await request(app).get('/property/similar?id=1');
+      expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('message');
     });
   });
