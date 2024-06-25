@@ -9,4 +9,6 @@ module.exports = {
     '^.+\\.tsx?$': 'ts-jest',
   },
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>/src' }),
+  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.spec.ts'],
+  coverageReporters: ['lcov', 'text', 'html'],
 };
