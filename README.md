@@ -1,6 +1,6 @@
-# Project Name
+# Scrapper Zameen Backend
 
-This is the backend for the [scrapper_zameen](https://github.com/Muhammad-Abdullah012/scrapper_zameen) application. It provides RESTful APIs to support the frontend application and manages the core business logic and data storage.
+This is the backend for the [scrapper_zameen](https://github.com/Muhammad-Abdullah012/scrapper_zameen_v2) application. It provides RESTful APIs to support the frontend application and manages the core business logic and data storage.
 
 ## Table of Contents
 - [Getting Started](#getting-started)
