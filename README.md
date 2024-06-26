@@ -6,7 +6,9 @@ This is the backend for the [scrapper_zameen](https://github.com/Muhammad-Abdull
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
+  - [Configuration](#configuration)
   - [Running the Project](#running-the-project)
+  - [Running Tests](#running-tests)
 - [API Documentation](#api-documentation)
 - [Folder Structure](#folder-structure)
 - [Contributing](#contributing)
@@ -34,18 +36,30 @@ cd scrapper_zameen_backend
 ```sh
 pnpm install
 ```
+### Configuration
+1. Create a .env file in the root directory of the project and configure your environment variables. You can use the .env.example file as a template:
+```sh
+cp .env.example .env
+```
+2. Edit the .env file and provide the necessary configuration values.
 ### Running the Project
 
 To start the project in development mode, run the following command:
 ```sh
 pnpm dev
 ```
-The server will start at http://localhost:5000.
+The server will start using the port specified in your .env file. By default, you can access it at http://localhost:5000 if `PORT` is set to 5000 in `.env` file.
 
+### Running Tests
+To run the tests, use the following command:
+```sh
+pnpm test
+```
 ### API Documentation
 
 The API documentation is available via Swagger. Once the server is running, you can access the Swagger UI at:
 ```sh
+    ### If server is running on port 5000 (depends on PORT in .env)
     http://localhost:5000/api-docs
 ```
 
