@@ -93,7 +93,16 @@ export class App {
           version: '1.0.0',
           description: 'Example docs',
         },
-        basePath: '/api/server',
+        servers: [
+          {
+            url: '/',
+            description: 'Local server',
+          },
+          {
+            url: '/api/server',
+            description: 'API server',
+          },
+        ],
         components: {
           schemas: {
             Property: generateSchema(PropertyResponseSchema, undefined, '3.0'),
