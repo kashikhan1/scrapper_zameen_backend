@@ -10,11 +10,13 @@ import passport from 'passport';
 import session from 'express-session';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
+import { generateSchema } from '@anatine/zod-openapi';
 import { NODE_ENV, PORT, LOG_FORMAT, ORIGIN, CREDENTIALS, SESSION_SECRET_KEY } from '@config/index';
 import { Routes } from '@interfaces/routes.interface';
 import { ErrorMiddleware } from '@middlewares/error.middleware';
 import { logger, stream } from '@utils/logger';
 import { sequelize } from './config/sequelize';
+import { PropertyDetailResponseSchema, PropertyResponseSchema } from './models/property.schema';
 
 export class App {
   public app: express.Application;
@@ -85,12 +87,20 @@ export class App {
   private initializeSwagger() {
     const options = {
       swaggerDefinition: {
+        openapi: '3.0.0',
         info: {
           title: 'REST API',
           version: '1.0.0',
           description: 'Example docs',
         },
         basePath: '/api/server',
+        components: {
+          schemas: {
+            Property: generateSchema(PropertyResponseSchema, undefined, '3.0'),
+            PropertyDetails: generateSchema(PropertyDetailResponseSchema, undefined, '3.0'),
+          },
+        },
+        paths: {},
       },
       apis: ['swagger.yaml'],
     };

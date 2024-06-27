@@ -1,109 +1,109 @@
 tags:
-- name: users
-  description: users API
+# - name: users
+#   description: users API
 - name: property
   description: properties API
 
 paths:
 # [GET] users
-  /users:
-    get:
-      tags:
-      - users
-      summary: Find All Users
-      responses:
-        200:
-          description: 'OK'
-        500:
-          description: 'Server Error'
+#   /users:
+#     get:
+#       tags:
+#       - users
+#       summary: Find All Users
+#       responses:
+#         200:
+#           description: 'OK'
+#         500:
+#           description: 'Server Error'
 
-# [POST] users
-    post:
-      tags:
-      - users
-      summary: Add User
-      parameters:
-      - name: body
-        in: body
-        description: user Data
-        required: true
-        schema:
-          $ref: '#/definitions/users'
-      responses:
-        201:
-          description: 'Created'
-        400:
-          description: 'Bad Request'
-        409:
-          description: 'Conflict'
-        500:
-          description: 'Server Error'
+# # [POST] users
+#     post:
+#       tags:
+#       - users
+#       summary: Add User
+#       parameters:
+#       - name: body
+#         in: body
+#         description: user Data
+#         required: true
+#         schema:
+#           $ref: '#/definitions/users'
+#       responses:
+#         201:
+#           description: 'Created'
+#         400:
+#           description: 'Bad Request'
+#         409:
+#           description: 'Conflict'
+#         500:
+#           description: 'Server Error'
 
-# [GET] users/id
-  /users/{id}:
-    get:
-      tags:
-      - users
-      summary: Find User By Id
-      parameters:
-      - name: id
-        in: path
-        description: User Id
-        required: true
-        type: integer
-      responses:
-        200:
-          description: 'OK'
-        409:
-          description: 'Conflict'
-        500:
-          description: 'Server Error'
+# # [GET] users/id
+#   /users/{id}:
+#     get:
+#       tags:
+#       - users
+#       summary: Find User By Id
+#       parameters:
+#       - name: id
+#         in: path
+#         description: User Id
+#         required: true
+#         type: integer
+#       responses:
+#         200:
+#           description: 'OK'
+#         409:
+#           description: 'Conflict'
+#         500:
+#           description: 'Server Error'
 
-# [PUT] users/id
-    put:
-      tags:
-      - users
-      summary: Update User By Id
-      parameters:
-      - name: id
-        in: path
-        description: user Id
-        required: true
-        type: integer
-      - name: body
-        in: body
-        description: user Data
-        required: true
-        schema:
-          $ref: '#/definitions/users'
-      responses:
-        200:
-          description: 'OK'
-        400:
-          description: 'Bad Request'
-        409:
-          description: 'Conflict'
-        500:
-          description: 'Server Error'
+# # [PUT] users/id
+#     put:
+#       tags:
+#       - users
+#       summary: Update User By Id
+#       parameters:
+#       - name: id
+#         in: path
+#         description: user Id
+#         required: true
+#         type: integer
+#       - name: body
+#         in: body
+#         description: user Data
+#         required: true
+#         schema:
+#           $ref: '#/definitions/users'
+#       responses:
+#         200:
+#           description: 'OK'
+#         400:
+#           description: 'Bad Request'
+#         409:
+#           description: 'Conflict'
+#         500:
+#           description: 'Server Error'
 
-# [DELETE] users/id
-    delete:
-      tags:
-      - users
-      summary: Delete User By Id
-      parameters:
-      - name: id
-        in: path
-        description: user Id
-        required: true
-        type: integer
-      responses:
-        200:
-          description: 'OK'
-        409:
-          description: 'Conflict'
-        500:
-          description: 'Server Error'
+# # [DELETE] users/id
+#     delete:
+#       tags:
+#       - users
+#       summary: Delete User By Id
+#       parameters:
+#       - name: id
+#         in: path
+#         description: user Id
+#         required: true
+#         type: integer
+#       responses:
+#         200:
+#           description: 'OK'
+#         409:
+#           description: 'Conflict'
+#         500:
+#           description: 'Server Error'
   /property:
     get:
       tags:
@@ -136,28 +136,30 @@ paths:
       responses:
         200:
           description: A list of properties
-          schema:
-            type: object
-            properties:
-              data:
+          content:
+            application/json:
+              schema:
                 type: object
                 properties:
-                  page_number:
+                  data:
+                    type: object
+                    properties:
+                      page_number:
+                        type: string
+                        example: "1"
+                      page_size:
+                        type: string
+                        example: "10"
+                      total_count:
+                        type: string
+                        example: "5040"
+                      properties:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Property'
+                  message:
                     type: string
-                    example: "1"
-                  page_size:
-                    type: string
-                    example: "10"
-                  total_count:
-                    type: string
-                    example: "5040"
-                  properties:
-                    type: array
-                    items:
-                      $ref: '#/definitions/Property'
-              message:
-                type: string
-                example: "findAll"
+                    example: "findAll"
   /property/search:
     get:
       tags:
@@ -235,28 +237,35 @@ paths:
       responses:
         200:
           description: A list of properties
-          schema:
-            type: object
-            properties:
-              data:
+          content:
+            application/json:
+              schema:
                 type: object
                 properties:
-                  page_number:
+                  data:
+                    type: object
+                    properties:
+                      page_number:
+                        type: string
+                        example: "1"
+                      page_size:
+                        type: string
+                        example: "10"
+                      total_count:
+                        type: string
+                        example: "5040"
+                      property_count_map:
+                        type: object
+                        additionalProperties:
+                          type: string
+                          example: "5040"
+                      properties:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Property'
+                  message:
                     type: string
-                    example: "1"
-                  page_size:
-                    type: string
-                    example: "10"
-                  total_count:
-                    type: string
-                    example: "5040"
-                  properties:
-                    type: array
-                    items:
-                      $ref: '#/definitions/Property'
-              message:
-                type: string
-                example: "search-properties"
+                    example: "search-properties"
   /property/count:
     get:
       tags:
@@ -307,17 +316,19 @@ paths:
       responses:
         200:
           description: Total property count
-          schema:
-            type: object
-            properties:
-              data:
+          content:
+            application/json:
+              schema:
                 type: object
-                additionalProperties:
-                  type: string
-                  example: "5040"
-              message:
-                type: string
-                example: "count"
+                properties:
+                  data:
+                    type: object
+                    additionalProperties:
+                      type: string
+                      example: "5040"
+                  message:
+                    type: string
+                    example: "count"
   /property/count/{city}:
     get:
       tags:
@@ -373,17 +384,19 @@ paths:
       responses:
         200:
           description: Total property count
-          schema:
-            type: object
-            properties:
-              data:
+          content:
+            application/json:
+              schema:
                 type: object
-                additionalProperties:
-                  type: string
-                  example: "5040"
-              message:
-                type: string
-                example: "count"
+                properties:
+                  data:
+                    type: object
+                    additionalProperties:
+                      type: string
+                      example: "5040"
+                  message:
+                    type: string
+                    example: "count"
   /property/{id}:
     get:
       tags:
@@ -399,16 +412,18 @@ paths:
       responses:
         200:
           description: Property details
-          schema:
-            type: object
-            properties:
-              data:
-                type: array
-                items:
-                  $ref: '#/definitions/Property'
-              message:
-                type: string
-                example: "findOne"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PropertyDetails'
+                  message:
+                    type: string
+                    example: "findOne"
         404:
           description: Property not found
   /property/available-cities:
@@ -420,17 +435,19 @@ paths:
       responses:
         200:
           description: A list of cities
-          schema:
-            type: object
-            properties:
-              data:
-                type: array
-                items:
-                  type: string
-                  example: "Islamabad"
-              message:
-                type: string
-                example: "available-cities"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: string
+                      example: "Islamabad"
+                  message:
+                    type: string
+                    example: "available-cities"
 
   /property/{city}:
     get:
@@ -469,28 +486,30 @@ paths:
       responses:
         200:
           description: A list of properties
-          schema:
-            type: object
-            properties:
-              data:
+          content:
+            application/json:
+              schema:
                 type: object
                 properties:
-                  page_number:
+                  data:
+                    type: object
+                    properties:
+                      page_number:
+                        type: string
+                        example: "1"
+                      page_size:
+                        type: string
+                        example: "10"
+                      total_count:
+                        type: string
+                        example: "5040"
+                      properties:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Property'
+                  message:
                     type: string
-                    example: "1"
-                  page_size:
-                    type: string
-                    example: "10"
-                  total_count:
-                    type: string
-                    example: "5040"
-                  properties:
-                    type: array
-                    items:
-                      $ref: '#/definitions/Property'
-              message:
-                type: string
-                example: "findAll"
+                    example: "findAll"
   /property/featured:
     get:
       tags:
@@ -510,28 +529,35 @@ paths:
       responses:
         200:
           description: A list of properties
-          schema:
-            type: object
-            properties:
-              data:
+          content:
+            application/json:
+              schema:
                 type: object
                 properties:
-                  page_number:
+                  data:
+                    type: object
+                    properties:
+                      page_number:
+                        type: string
+                        example: "1"
+                      page_size:
+                        type: string
+                        example: "10"
+                      total_count:
+                        type: string
+                        example: "5040"
+                      property_count_map:
+                        type: object
+                        additionalProperties:
+                          type: string
+                          example: "5040"
+                      properties:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Property'
+                  message:
                     type: string
-                    example: "1"
-                  page_size:
-                    type: string
-                    example: "10"
-                  total_count:
-                    type: string
-                    example: "5040"
-                  properties:
-                    type: array
-                    items:
-                      $ref: '#/definitions/Property'
-              message:
-                type: string
-                example: "featured-properties"
+                    example: "featured-properties"
   /property/similar:
     get:
       tags:
@@ -556,28 +582,35 @@ paths:
       responses:
         200:
           description: A list of properties
-          schema:
-            type: object
-            properties:
-              data:
+          content:
+            application/json:
+              schema:
                 type: object
                 properties:
-                  page_number:
+                  data:
+                    type: object
+                    properties:
+                      page_number:
+                        type: string
+                        example: "1"
+                      page_size:
+                        type: string
+                        example: "10"
+                      total_count:
+                        type: string
+                        example: "5040"
+                      property_count_map:
+                        type: object
+                        additionalProperties:
+                          type: string
+                          example: "5040"
+                      properties:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Property'
+                  message:
                     type: string
-                    example: "1"
-                  page_size:
-                    type: string
-                    example: "10"
-                  total_count:
-                    type: string
-                    example: "5040"
-                  properties:
-                    type: array
-                    items:
-                      $ref: '#/definitions/Property'
-              message:
-                type: string
-                example: "similar-properties"
+                    example: "similar-properties"
   /property/search/{city}:
     get:
       tags:
@@ -660,154 +693,161 @@ paths:
       responses:
         200:
           description: A list of properties
-          schema:
-            type: object
-            properties:
-              data:
+          content:
+            application/json:
+              schema:
                 type: object
                 properties:
-                  page_number:
+                  data:
+                    type: object
+                    properties:
+                      page_number:
+                        type: string
+                        example: "1"
+                      page_size:
+                        type: string
+                        example: "10"
+                      total_count:
+                        type: string
+                        example: "5040"
+                      property_count_map:
+                        type: object
+                        additionalProperties:
+                          type: string
+                          example: "5040"
+                      properties:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Property'
+                  message:
                     type: string
-                    example: "1"
-                  page_size:
-                    type: string
-                    example: "10"
-                  total_count:
-                    type: string
-                    example: "5040"
-                  properties:
-                    type: array
-                    items:
-                      $ref: '#/definitions/Property'
-              message:
-                type: string
-                example: "search-properties"
+                    example: "search-properties"
 
 # definitions
-definitions:
-  users:
-    type: object
-    required:
-        - email
-        - password
-    properties:
-      email:
-        type: string
-        description: user Email
-      password:
-        type: string
-        description: user Password
-  Property:
-    type: object
-    properties:
-      id:
-        type: integer
-        example: 1
-      added:
-        type: integer
-        example: 1617187200
-      created_at:
-        type: string
-        format: date-time
-        example: '2023-05-17T00:00:00Z'
-      updated_at:
-        type: string
-        format: date-time
-        example: '2023-05-17T00:00:00Z'
-      price:
-        type: string
-        maxLength: 255
-        example: '1000000'
-      location:
-        type: string
-        maxLength: 255
-        example: 'New York'
-      bath:
-        type: string
-        maxLength: 255
-        example: '2'
-      area:
-        type: string
-        maxLength: 255
-        example: '1500 sq ft'
-      purpose:
-        type: string
-        maxLength: 255
-        example: 'Residential'
-      bedroom:
-        type: string
-        maxLength: 255
-        example: '3'
-      url:
-        type: string
-        format: uri
-        example: 'http://example.com/property/1'
-      area_trends:
-        type: string
-        format: uri
-        example: 'http://example.com/property/1'
-      popularity_trends:
-        type: string
-        format: uri
-        example: 'http://example.com/property/1'
-      contact:
-        type: string
-        format: uri
-        example: 'http://example.com/property/1'
-      cover_photo_url:
-        type: string
-        format: uri
-        example: 'http://example.com/property/1.jpg'
-      external_id:
-        type: string
-        example: "123456789"
-      initial_amount:
-        type: string
-        maxLength: 255
-        example: '50000'
-      monthly_installment:
-        type: string
-        maxLength: 255
-        example: '1500'
-      remaining_installments:
-        type: string
-        maxLength: 255
-        example: '36'
-      desc:
-        type: string
-        example: 'Beautiful property located in the heart of the city.'
-      header:
-        type: string
-        example: 'Prime Location Property'
-      type:
-        type: string
-        maxLength: 255
-        example: 'Apartment'
-      features:
-        type: array
-        items:
-          type: object
-          properties:
-            category:
-              type: string
-            features:
-              type: array
-              items:
-                type: string
-    required:
-      - id
-      - added
-      - created_at
-      - updated_at
-      - price
-      - location
-      - bath
-      - area
-      - purpose
-      - bedroom
-      - desc
-      - header
-      - type
+# definitions:
+#   users:
+#     type: object
+#     required:
+#         - email
+#         - password
+#     properties:
+#       email:
+#         type: string
+#         description: user Email
+#       password:
+#         type: string
+#         description: user Password
+  # Property:
+  #   type: object
+  #   properties:
+  #     id:
+  #       type: integer
+  #       example: 1
+  #     added:
+  #       type: integer
+  #       example: 1617187200
+  #     created_at:
+  #       type: string
+  #       format: date-time
+  #       example: '2023-05-17T00:00:00Z'
+  #     updated_at:
+  #       type: string
+  #       format: date-time
+  #       example: '2023-05-17T00:00:00Z'
+  #     price:
+  #       type: string
+  #       maxLength: 255
+  #       example: '1000000'
+  #     location:
+  #       type: string
+  #       maxLength: 255
+  #       example: 'New York'
+  #     bath:
+  #       type: string
+  #       maxLength: 255
+  #       example: '2'
+  #     area:
+  #       type: string
+  #       maxLength: 255
+  #       example: '1500 sq ft'
+  #     purpose:
+  #       type: string
+  #       maxLength: 255
+  #       example: 'Residential'
+  #     bedroom:
+  #       type: string
+  #       maxLength: 255
+  #       example: '3'
+  #     url:
+  #       type: string
+  #       format: uri
+  #       example: 'http://example.com/property/1'
+  #     area_trends:
+  #       type: string
+  #       format: uri
+  #       example: 'http://example.com/property/1'
+  #     popularity_trends:
+  #       type: string
+  #       format: uri
+  #       example: 'http://example.com/property/1'
+  #     contact:
+  #       type: string
+  #       format: uri
+  #       example: 'http://example.com/property/1'
+  #     cover_photo_url:
+  #       type: string
+  #       format: uri
+  #       example: 'http://example.com/property/1.jpg'
+  #     external_id:
+  #       type: string
+  #       example: "123456789"
+  #     initial_amount:
+  #       type: string
+  #       maxLength: 255
+  #       example: '50000'
+  #     monthly_installment:
+  #       type: string
+  #       maxLength: 255
+  #       example: '1500'
+  #     remaining_installments:
+  #       type: string
+  #       maxLength: 255
+  #       example: '36'
+  #     desc:
+  #       type: string
+  #       example: 'Beautiful property located in the heart of the city.'
+  #     header:
+  #       type: string
+  #       example: 'Prime Location Property'
+  #     type:
+  #       type: string
+  #       maxLength: 255
+  #       example: 'Apartment'
+  #     features:
+  #       type: array
+  #       items:
+  #         type: object
+  #         properties:
+  #           category:
+  #             type: string
+  #           features:
+  #             type: array
+  #             items:
+  #               type: string
+  #   required:
+  #     - id
+  #     - added
+  #     - created_at
+  #     - updated_at
+  #     - price
+  #     - location
+  #     - bath
+  #     - area
+  #     - purpose
+  #     - bedroom
+  #     - desc
+  #     - header
+  #     - type
 
 schemes:
  - https
