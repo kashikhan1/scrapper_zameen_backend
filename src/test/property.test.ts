@@ -460,6 +460,26 @@ describe('Property', () => {
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
     });
+    it('should return 400 for invalid bedrooms parameter', async () => {
+      const response = await request(app).get('/property/search?bedrooms=1,a');
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message');
+    });
+    it('should return 400 for invalid property_type parameter', async () => {
+      const response = await request(app).get('/property/search?property_type=invalid');
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message');
+    });
+    it('should return 400 for invalid start_date parameter', async () => {
+      const response = await request(app).get('/property/search?start_date=invalid');
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message');
+    });
+    it('should return 400 for invalid end_date parameter', async () => {
+      const response = await request(app).get('/property/search?end_date=invalid');
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message');
+    });
     it('Should return error', async () => {
       propertyServiceMock.searchProperties.mockRejectedValue('Error');
       const response = await request(app).get('/property/search?query=islamabad');
