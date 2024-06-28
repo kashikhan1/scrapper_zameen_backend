@@ -98,9 +98,10 @@ export class App {
       swaggerDefinition: {
         openapi: '3.0.0',
         info: {
-          title: 'REST API',
+          title: 'Scrapper Zameen Backend API',
           version: '1.0.0',
-          description: 'Example docs',
+          description:
+            'This is the backend for the scrapper_zameen application. It provides RESTful APIs to support the frontend application and manages the core business logic and data storage.',
         },
         servers: [
           {
