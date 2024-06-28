@@ -6,8 +6,9 @@ import express from 'express';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import morgan from 'morgan';
-import passport from 'passport';
+import { createClient } from 'redis';
 import session from 'express-session';
+import RedisStore from 'connect-redis';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { generateSchema } from '@anatine/zod-openapi';
@@ -59,6 +60,14 @@ export class App {
     return this.app;
   }
 
+  private connectRedisClient() {
+    const redisClent = createClient({ url: 'redis://redis:6379' });
+    redisClent.connect().catch(err => {
+      logger.error('Error connecting to redis: ', err);
+    });
+    return redisClent;
+  }
+
   private initializeMiddlewares() {
     this.app.use(morgan(LOG_FORMAT, { stream }));
     this.app.use(cors({ origin: ORIGIN, credentials: CREDENTIALS }));
@@ -70,12 +79,12 @@ export class App {
     this.app.use(cookieParser());
     this.app.use(
       session({
+        store: new RedisStore({ client: this.connectRedisClient() }),
         secret: SESSION_SECRET_KEY,
         resave: false,
         saveUninitialized: false,
       }),
     );
-    this.app.use(passport.session());
   }
 
   private initializeRoutes(routes: Routes[]) {

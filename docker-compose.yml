@@ -27,6 +27,12 @@ services:
     restart: 'unless-stopped'
     networks:
       - backend
+  redis:
+    image: redis:alpine3.20
+    restart: 'unless-stopped'
+    networks:
+      - backend
+
 
 networks:
   backend:
