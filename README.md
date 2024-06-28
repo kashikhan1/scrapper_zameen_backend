@@ -10,6 +10,7 @@ This is the backend for the [scrapper_zameen](https://github.com/Muhammad-Abdull
   - [Configuration](#configuration)
   - [Running the Project](#running-the-project)
   - [Running Tests](#running-tests)
+  - [Running with Docker](#running-with-docker)
 - [API Documentation](#api-documentation)
 - [Folder Structure](#folder-structure)
 
@@ -23,6 +24,7 @@ Make sure you have the following software installed on your machine:
 
 - [Node.js](https://nodejs.org/en/download/)
 - [pnpm](https://pnpm.io/installation)
+- [Docker](https://www.docker.com/get-started)
 
 ### Installation
 
@@ -65,6 +67,26 @@ To run the tests, use the following command:
 
 ```sh
 pnpm test
+```
+
+### Running with Docker
+
+You can also run the project using Docker and Docker Compose.
+
+#### Docker Commands
+
+To build and start the Docker containers in development mode, run the following command:
+
+```sh
+pnpm deploy:dev
+```
+
+This command is defined in the package.json file and uses Docker Compose to build and start the containers.
+
+To stop the Docker containers, use the following command:
+
+```sh
+docker compose down
 ```
 
 ### API Documentation
