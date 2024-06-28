@@ -72,6 +72,10 @@ pnpm test
 ### Running with Docker
 
 You can also run the project using Docker and Docker Compose.
+You'll need to clone and run the following projects:
+
+- [scrapper_zameen](https://github.com/Muhammad-Abdullah012/scrapper_zameen_v2)
+- [frontend](https://github.com/Mr-AsimGhaffar/project)
 
 #### Docker Commands
 

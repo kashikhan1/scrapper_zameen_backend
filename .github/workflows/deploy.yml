@@ -22,7 +22,11 @@ jobs:
         run: pnpm install
 
       - name: Run unit tests
-        run: pnpm test
+        env:
+          TEST_ENV_FILE: ${{ secrets.TEST_ENV_FILE }}
+        run: |
+          echo "$TEST_ENV_FILE" > .env.test.local
+          pnpm test
 
       - name: Create EC2 private key file
         shell: bash
