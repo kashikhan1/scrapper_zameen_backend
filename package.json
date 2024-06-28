@@ -12,8 +12,8 @@
     "test": "jest --forceExit --detectOpenHandles --coverage",
     "lint": "eslint --ignore-path .gitignore --ext .ts src",
     "lint:fix": "pnpm run lint -- --fix",
-    "deploy:prod": "pnpm run build && pm2 start ecosystem.config.js --only prod",
-    "deploy:dev": "pm2 start ecosystem.config.js --only dev",
+    "deploy:prod": "docker compose up -d --build",
+    "deploy:dev": "docker compose up -d --build",
     "migrate:up": "npx sequelize-cli db:migrate",
     "migrate:undo": "npx sequelize-cli db:migrate:undo",
     "prepare": "husky"
@@ -82,7 +82,6 @@
     "node-config": "^0.0.2",
     "node-gyp": "^10.1.0",
     "nodemon": "^3.1.4",
-    "pm2": "^5.3.1",
     "prettier": "^3.2.5",
     "supertest": "^7.0.0",
     "ts-jest": "^29.1.5",
