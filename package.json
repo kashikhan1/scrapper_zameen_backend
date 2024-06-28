@@ -82,7 +82,7 @@
     "node-config": "^0.0.2",
     "node-gyp": "^10.1.0",
     "nodemon": "^3.1.4",
-    "prettier": "^3.2.5",
+    "prettier": "^3.3.2",
     "supertest": "^7.0.0",
     "ts-jest": "^29.1.5",
     "ts-node": "^10.9.2",
