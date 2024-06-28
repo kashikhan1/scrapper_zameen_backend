@@ -1,9 +1,10 @@
 name: Deploy to EC2
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Run Tests"]
+    types:
+      - completed
 
 jobs:
   deploy:
@@ -11,23 +12,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '21'
-
-      - name: Install pnpm
-        run: npm i -g pnpm
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Run unit tests
-        env:
-          TEST_ENV_FILE: ${{ secrets.TEST_ENV_FILE }}
-        run: |
-          echo "$TEST_ENV_FILE" > .env.test.local
-          pnpm test
-
       - name: Create EC2 private key file
         shell: bash
         env:
