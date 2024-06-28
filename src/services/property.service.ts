@@ -22,7 +22,7 @@ export class PropertyService {
   }
 
   private mapProperties(properties: IProperty[]) {
-    return properties.map(({ id, desc, header, type, price, cover_photo_url, available, area, location }: IProperty) => ({
+    return properties.map(({ id, desc, header, type, price, cover_photo_url, available, area, location, added, bedroom, bath }: IProperty) => ({
       id,
       desc,
       header,
@@ -32,6 +32,9 @@ export class PropertyService {
       available,
       area,
       location,
+      added,
+      bedroom,
+      bath,
     }));
   }
   private async mapPropertiesDetails(properties: object[]) {
