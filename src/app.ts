@@ -6,7 +6,6 @@ import express from 'express';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import morgan from 'morgan';
-import passport from 'passport';
 import session from 'express-session';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
@@ -75,7 +74,6 @@ export class App {
         saveUninitialized: false,
       }),
     );
-    this.app.use(passport.session());
   }
 
   private initializeRoutes(routes: Routes[]) {
