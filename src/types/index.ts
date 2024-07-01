@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { FeatureSchema, PropertySchema } from '@/models/property.schema';
+import { type FeatureSchema, type PropertySchema } from '@/models/property.schema';
 
 export enum SORT_ORDER {
   ASC = 'ASC',
