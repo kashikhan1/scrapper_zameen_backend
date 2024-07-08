@@ -21,6 +21,55 @@ export enum AVAILABLE_CITIES {
 export type IProperty = z.infer<typeof PropertySchema>;
 export type IFeature = z.infer<typeof FeatureSchema>;
 
+export interface ISearchPropertiesProps {
+  city?: string;
+  search?: string;
+  page_number: number;
+  page_size?: number;
+  sort_by?: SORT_COLUMNS;
+  sort_order?: SORT_ORDER;
+  property_type?: string;
+  area_min?: string;
+  area_max?: string;
+  price_min?: string;
+  price_max?: string;
+  bedrooms?: string;
+  start_date?: string;
+  end_date?: string;
+}
+
+export interface IGetPropertiesCountMapProps {
+  city?: string;
+  search?: string;
+  area_min?: string;
+  area_max?: string;
+  price_min?: string;
+  price_max?: string;
+  bedrooms?: string;
+  start_date?: string;
+  end_date?: string;
+}
+
+export interface IConstructBaseQueryProps {
+  city?: string;
+  search?: string;
+  property_types?: string[];
+  bedrooms?: string;
+  price_min?: string;
+  price_max?: string;
+  area_min?: string;
+  area_max?: string;
+  start_date?: string;
+  end_date?: string;
+}
+
+export interface IFindAllPropertiesProps {
+  city?: string;
+  page_number: number;
+  page_size?: number;
+  sort_by?: SORT_COLUMNS;
+  sort_order?: SORT_ORDER;
+}
 // export interface IProperty {
 //   id: number;
 //   desc: string;

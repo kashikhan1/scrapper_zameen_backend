@@ -2,8 +2,18 @@ import { Service } from 'typedi';
 import { QueryTypes } from 'sequelize';
 import { sequelize } from '@config/sequelize';
 import { POPULARITY_TREND_URL, AREA_TREND_URL, CONTACT_URL } from '@config/index';
-import { AVAILABLE_CITIES, IProperty, SORT_COLUMNS, SORT_ORDER } from '@/types';
+import {
+  AVAILABLE_CITIES,
+  IConstructBaseQueryProps,
+  IFindAllPropertiesProps,
+  IGetPropertiesCountMapProps,
+  IProperty,
+  ISearchPropertiesProps,
+  SORT_COLUMNS,
+  SORT_ORDER,
+} from '@/types';
 import { getPropertyTypes } from '@/utils/helpers';
+import { logger } from '@/utils/logger';
 import axios, { AxiosResponse } from 'axios';
 
 @Service()
@@ -17,26 +27,24 @@ export class PropertyService {
     }
   }
 
-  private getSortColumn(sort_by: SORT_COLUMNS) {
-    return sort_by;
+  private selectAllProperties(): string {
+    const properties: (keyof IProperty)[] = [
+      'id',
+      'desc',
+      'header',
+      'type',
+      'price',
+      'cover_photo_url',
+      'available',
+      'area',
+      'location',
+      'added',
+      'bedroom',
+      'bath',
+    ];
+    return properties.map(property => `"${property}"`).join(',');
   }
 
-  private mapProperties(properties: IProperty[]) {
-    return properties.map(({ id, desc, header, type, price, cover_photo_url, available, area, location, added, bedroom, bath }: IProperty) => ({
-      id,
-      desc,
-      header,
-      type,
-      price,
-      cover_photo_url,
-      available,
-      area,
-      location,
-      added,
-      bedroom,
-      bath,
-    }));
-  }
   private async mapPropertiesDetails(properties: object[]) {
     const promises = await Promise.allSettled(
       properties.map(async (property: any) => {
@@ -95,18 +103,7 @@ export class PropertyService {
     area_max,
     start_date,
     end_date,
-  }: {
-    city?: string;
-    search?: string;
-    property_types?: string[];
-    bedrooms?: string;
-    price_min?: string;
-    price_max?: string;
-    area_min?: string;
-    area_max?: string;
-    start_date?: string;
-    end_date?: string;
-  }): { baseQuery: string; replacements: any } {
+  }: IConstructBaseQueryProps): { baseQuery: string; replacements: any } {
     let baseQuery = `FROM property_v2 WHERE 1=1 `;
     const replacements: any = {};
 
@@ -184,22 +181,15 @@ export class PropertyService {
     page_size = 10,
     sort_by = SORT_COLUMNS.ID,
     sort_order = SORT_ORDER.ASC,
-  }: {
-    city?: string;
-    page_number: number;
-    page_size?: number;
-    sort_by?: SORT_COLUMNS;
-    sort_order?: SORT_ORDER;
-  }): Promise<any> {
+  }: IFindAllPropertiesProps): Promise<any> {
     this.validateSortParams(sort_by, sort_order);
 
     const { baseQuery, replacements } = this.constructBaseQuery({ city });
     const totalCount = await this.getTotalCount(baseQuery, replacements);
 
-    const sortColumn = this.getSortColumn(sort_by);
     const offset = (page_number - 1) * page_size;
 
-    const query = `SELECT * ${baseQuery} ORDER BY ${sortColumn} ${sort_order} LIMIT :page_size OFFSET :offset`;
+    const query = `SELECT ${this.selectAllProperties()} ${baseQuery} ORDER BY ${sort_by} ${sort_order} LIMIT :page_size OFFSET :offset`;
     replacements.page_size = page_size;
     replacements.offset = offset;
 
@@ -207,7 +197,7 @@ export class PropertyService {
       type: QueryTypes.SELECT,
       replacements,
     });
-    return { properties: await this.mapProperties(properties), total_count: totalCount };
+    return { properties, total_count: totalCount };
   }
   public async findPropertyById(propertyId: number) {
     const property = await sequelize.query(`SELECT * FROM property_v2 WHERE id = :propertyId`, {
@@ -215,16 +205,9 @@ export class PropertyService {
       replacements: { propertyId },
     });
 
-    return await this.mapPropertiesDetails(property);
+    return this.mapPropertiesDetails(property);
   }
-  public async getPropertyCount({ city }: { city?: string }) {
-    const query = city ? `SELECT COUNT(*) FROM property_v2 WHERE location ILIKE :city;` : `SELECT COUNT(*) FROM property_v2;`;
-    const replacements = city ? { city: `%${city}%` } : {};
-    return await sequelize.query(query, {
-      type: QueryTypes.SELECT,
-      replacements,
-    });
-  }
+
   public async availableCitiesData() {
     return Object.values(AVAILABLE_CITIES);
   }
@@ -238,17 +221,7 @@ export class PropertyService {
     bedrooms,
     start_date,
     end_date,
-  }: {
-    city?: string;
-    search?: string;
-    area_min?: string;
-    area_max?: string;
-    price_min?: string;
-    price_max?: string;
-    bedrooms?: string;
-    start_date?: string;
-    end_date?: string;
-  }) {
+  }: IGetPropertiesCountMapProps) {
     const propertyTypes = await getPropertyTypes();
 
     const { baseQuery, replacements } = this.constructBaseQuery({
@@ -263,7 +236,7 @@ export class PropertyService {
       start_date,
       end_date,
     });
-    return await this.getTotalCountGroupedByTypes(baseQuery, replacements);
+    return this.getTotalCountGroupedByTypes(baseQuery, replacements);
   }
 
   public async searchProperties({
@@ -281,22 +254,7 @@ export class PropertyService {
     bedrooms,
     start_date,
     end_date,
-  }: {
-    city?: string;
-    search?: string;
-    page_number: number;
-    page_size?: number;
-    sort_by?: SORT_COLUMNS;
-    sort_order?: SORT_ORDER;
-    property_type?: string;
-    area_min?: string;
-    area_max?: string;
-    price_min?: string;
-    price_max?: string;
-    bedrooms?: string;
-    start_date?: string;
-    end_date?: string;
-  }): Promise<any> {
+  }: ISearchPropertiesProps): Promise<any> {
     this.validateSortParams(sort_by, sort_order);
 
     const { baseQuery, replacements } = this.constructBaseQuery({
@@ -311,33 +269,51 @@ export class PropertyService {
       start_date,
       end_date,
     });
-    const totalCount = await this.getTotalCount(baseQuery, replacements);
+    const totalCountPromise = this.getTotalCount(baseQuery, replacements);
 
-    const sortColumn = this.getSortColumn(sort_by);
     const offset = (page_number - 1) * page_size;
 
-    const query = `SELECT * ${baseQuery} ORDER BY ${sortColumn} ${sort_order} LIMIT :page_size OFFSET :offset`;
+    const query = `SELECT ${this.selectAllProperties()} ${baseQuery} ORDER BY ${sort_by} ${sort_order} LIMIT :page_size OFFSET :offset`;
     replacements.page_size = page_size;
     replacements.offset = offset;
 
-    const properties = await sequelize.query<IProperty>(query, {
+    const propertiesPromise = sequelize.query<IProperty>(query, {
       type: QueryTypes.SELECT,
       replacements,
     });
+    const getPropertiesCountMapPromise = this.getPropertiesCountMap({
+      city,
+      search,
+      area_min,
+      area_max,
+      price_min,
+      price_max,
+      bedrooms,
+      start_date,
+      end_date,
+    });
+
+    const [propertiesResult, propertiesMapResult, totalCountResult] = await Promise.allSettled([
+      propertiesPromise,
+      getPropertiesCountMapPromise,
+      totalCountPromise,
+    ]);
+    if (propertiesResult.status === 'rejected') {
+      logger.error(`Error fetching properties: ${propertiesResult.reason}`);
+    }
+    if (propertiesMapResult.status === 'rejected') {
+      logger.error(`Error fetching properties map: ${propertiesMapResult.reason}`);
+    }
+    if (totalCountResult.status === 'rejected') {
+      logger.error(`Error fetching total count: ${totalCountResult.reason}`);
+    }
+    const properties = propertiesResult.status === 'fulfilled' ? propertiesResult.value : [];
+    const propertiesMap = propertiesMapResult.status === 'fulfilled' ? propertiesMapResult.value : {};
+    const totalCount = totalCountResult.status === 'fulfilled' ? totalCountResult.value : 0;
     return {
-      properties: await this.mapProperties(properties),
+      properties,
       total_count: totalCount,
-      property_count_map: await this.getPropertiesCountMap({
-        city,
-        search,
-        area_min,
-        area_max,
-        price_min,
-        price_max,
-        bedrooms,
-        start_date,
-        end_date,
-      }),
+      property_count_map: propertiesMap,
     };
   }
 }
