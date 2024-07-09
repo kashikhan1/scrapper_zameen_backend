@@ -185,7 +185,7 @@ export class PropertyService {
     this.validateSortParams(sort_by, sort_order);
 
     const { baseQuery, replacements } = this.constructBaseQuery({ city });
-    const totalCount = await this.getTotalCount(baseQuery, replacements);
+    const totalCountPromise = this.getTotalCount(baseQuery, replacements);
 
     const offset = (page_number - 1) * page_size;
 
@@ -193,10 +193,21 @@ export class PropertyService {
     replacements.page_size = page_size;
     replacements.offset = offset;
 
-    const properties = await sequelize.query<IProperty>(query, {
+    const propertiesPromise = sequelize.query<IProperty>(query, {
       type: QueryTypes.SELECT,
       replacements,
     });
+    const [propertiesResult, totalCountResult] = await Promise.allSettled([propertiesPromise, totalCountPromise]);
+
+    if (propertiesResult.status === 'rejected') {
+      logger.error(`Error fetching properties: ${propertiesResult.reason}`);
+    }
+    if (totalCountResult.status === 'rejected') {
+      logger.error(`Error fetching total count: ${totalCountResult.reason}`);
+    }
+    const properties = propertiesResult.status === 'fulfilled' ? propertiesResult.value : [];
+    const totalCount = totalCountResult.status === 'fulfilled' ? totalCountResult.value : 0;
+
     return { properties, total_count: totalCount };
   }
   public async findPropertyById(propertyId: number) {
