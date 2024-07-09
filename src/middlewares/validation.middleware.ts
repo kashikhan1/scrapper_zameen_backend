@@ -64,7 +64,7 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
     req.query.area_max = '';
   }
   if (req.query.price_min == null) {
-    req.query.price_min = '0';
+    req.query.price_min = '1';
   }
   if (req.query.price_max == null) {
     req.query.price_max = '';
