@@ -21,3 +21,5 @@ export const {
   FEATURED_PROPERTY_PRICE_THRESHOLD,
 } = process.env;
 export const POSTGRES_PORT = parseInt(process.env.POSTGRES_PORT, 10);
+
+export const CACHE_EXPIRY_SECONDS = Number(process.env.CACHE_EXPIRY_SECONDS);

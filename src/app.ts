@@ -6,7 +6,7 @@ import express from 'express';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import morgan from 'morgan';
-import { createClient } from 'redis';
+import { Container } from 'typedi';
 import session from 'express-session';
 import RedisStore from 'connect-redis';
 import swaggerJSDoc from 'swagger-jsdoc';
@@ -18,11 +18,13 @@ import { ErrorMiddleware } from '@middlewares/error.middleware';
 import { logger, stream } from '@utils/logger';
 import { sequelize } from './config/sequelize';
 import { PropertyDetailResponseSchema, PropertyResponseSchema } from './models/property.schema';
+import { RedisService } from './services/redis.service';
 
 export class App {
   public app: express.Application;
   public env: string;
   public port: string | number;
+  private redis = Container.get(RedisService);
 
   constructor(routes: Routes[]) {
     this.app = express();
@@ -60,14 +62,6 @@ export class App {
     return this.app;
   }
 
-  private connectRedisClient() {
-    const redisClent = createClient({ url: 'redis://redis:6379' });
-    redisClent.connect().catch(err => {
-      logger.error('Error connecting to redis: ', err);
-    });
-    return redisClent;
-  }
-
   private initializeMiddlewares() {
     this.app.use(morgan(LOG_FORMAT, { stream }));
     this.app.use(cors({ origin: ORIGIN, credentials: CREDENTIALS }));
@@ -79,7 +73,7 @@ export class App {
     this.app.use(cookieParser());
     this.app.use(
       session({
-        store: new RedisStore({ client: this.connectRedisClient() }),
+        store: new RedisStore({ client: this.redis.getRedisClient() }),
         secret: SESSION_SECRET_KEY,
         resave: false,
         saveUninitialized: false,
