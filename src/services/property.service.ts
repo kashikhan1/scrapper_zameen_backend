@@ -274,6 +274,16 @@ export class PropertyService {
     return this.getTotalCountGroupedByTypes(baseQuery, replacements);
   }
 
+  public async autoCompleteLocation(search: string) {
+    const query = `SELECT DISTINCT location FROM property_v2 WHERE location ILIKE :search LIMIT 10`;
+    return (
+      await sequelize.query<{ location: string }>(query, {
+        type: QueryTypes.SELECT,
+        replacements: { search: `%${search}%` },
+      })
+    ).map(item => item.location);
+  }
+
   public async searchProperties({
     city,
     search,

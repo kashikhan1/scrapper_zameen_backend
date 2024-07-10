@@ -27,6 +27,7 @@ export class PropertyRoute implements Routes {
       validatePurposeFilter,
       this.property.getProperties,
     );
+    this.router.get(`${this.path}/suggestions`, this.property.autoCompleteLocations);
     this.router.get(
       `${this.path}/count`,
       validateSearchQueryParamMiddleware,

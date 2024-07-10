@@ -178,4 +178,13 @@ export class PropertyController {
       next(error);
     }
   };
+  public autoCompleteLocations = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { query = '' } = req.query as { query: string };
+      const autoCompleteLocations = await this.property.autoCompleteLocation(query);
+      res.status(200).json({ data: autoCompleteLocations, message: 'auto-complete-locations' });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
