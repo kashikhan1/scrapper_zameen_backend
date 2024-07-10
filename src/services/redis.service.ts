@@ -11,9 +11,14 @@ export class RedisService {
     this.redisClient.on('error', err => {
       logger.error('Redis Client Error', err);
     });
-    this.redisClient.connect().catch(err => {
-      logger.error('Error connecting to redis: ', err);
-    });
+    this.redisClient
+      .connect()
+      .then(() => {
+        logger.info('Connected to redis');
+      })
+      .catch(err => {
+        logger.error('Error connecting to redis: ', err);
+      });
   }
   public getRedisClient(): RedisClientType {
     return this.redisClient;
