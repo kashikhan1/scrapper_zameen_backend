@@ -3,7 +3,7 @@ import { validateOrReject, ValidationError } from 'class-validator';
 import { NextFunction, Request, Response } from 'express';
 import { HttpException } from '@exceptions/HttpException';
 import { AVAILABLE_CITIES } from '@/types';
-import { getPropertyTypes } from '@/utils/helpers';
+import { getPropertyPurpose, getPropertyTypes } from '@/utils/helpers';
 
 /**
  * @name ValidationMiddleware
@@ -115,5 +115,18 @@ export const validatePropertyId = (req: Request, res: Response, next: NextFuncti
     res.status(400).json({ message: 'Invalid property id parameter. It must be a valid number.' });
   } else {
     next();
+  }
+};
+
+export const validatePurposeFilter = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { purpose = '' } = req.query as { purpose: string };
+    const dbPurpose = await getPropertyPurpose();
+    if (!dbPurpose.map(v => v.toLowerCase()).includes(purpose.toLowerCase())) {
+      return res.status(400).json({ message: `Invalid purpose parameter. It must be one of following: ${dbPurpose.join(',')}.` });
+    }
+    next();
+  } catch (err) {
+    next(err);
   }
 };

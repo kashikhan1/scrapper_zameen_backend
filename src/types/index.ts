@@ -36,6 +36,7 @@ export interface ISearchPropertiesProps {
   bedrooms?: string;
   start_date?: string;
   end_date?: string;
+  purpose?: string;
 }
 
 export interface IGetPropertiesCountMapProps {
@@ -48,6 +49,7 @@ export interface IGetPropertiesCountMapProps {
   bedrooms?: string;
   start_date?: string;
   end_date?: string;
+  purpose?: string;
 }
 
 export interface IConstructBaseQueryProps {
@@ -61,6 +63,7 @@ export interface IConstructBaseQueryProps {
   area_max?: string;
   start_date?: string;
   end_date?: string;
+  purpose?: string;
 }
 
 export interface IFindAllPropertiesProps {
@@ -69,6 +72,7 @@ export interface IFindAllPropertiesProps {
   page_size?: number;
   sort_by?: SORT_COLUMNS;
   sort_order?: SORT_ORDER;
+  purpose?: string;
 }
 // export interface IProperty {
 //   id: number;
