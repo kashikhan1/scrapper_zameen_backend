@@ -118,6 +118,7 @@ export class PropertyService {
     area_max,
     start_date,
     end_date,
+    purpose,
   }: IConstructBaseQueryProps): { baseQuery: string; replacements: any } {
     let baseQuery = `FROM property_v2 WHERE 1=1 `;
     const replacements: any = {};
@@ -188,6 +189,11 @@ export class PropertyService {
       replacements.end_date = Date.parse(end_date) / MILLISECONDS_PER_SECOND;
     }
 
+    if (purpose) {
+      baseQuery += `AND purpose ILIKE :purpose `;
+      replacements.purpose = `%${purpose}%`;
+    }
+
     return { baseQuery, replacements };
   }
   public async findAllProperties({
@@ -196,10 +202,11 @@ export class PropertyService {
     page_size = 10,
     sort_by = SORT_COLUMNS.ID,
     sort_order = SORT_ORDER.ASC,
+    purpose,
   }: IFindAllPropertiesProps): Promise<any> {
     this.validateSortParams(sort_by, sort_order);
 
-    const { baseQuery, replacements } = this.constructBaseQuery({ city });
+    const { baseQuery, replacements } = this.constructBaseQuery({ city, purpose });
     const totalCountPromise = this.getTotalCount(baseQuery, replacements);
 
     const offset = (page_number - 1) * page_size;
@@ -247,6 +254,7 @@ export class PropertyService {
     bedrooms,
     start_date,
     end_date,
+    purpose,
   }: IGetPropertiesCountMapProps) {
     const propertyTypes = await getPropertyTypes();
 
@@ -261,6 +269,7 @@ export class PropertyService {
       area_max,
       start_date,
       end_date,
+      purpose,
     });
     return this.getTotalCountGroupedByTypes(baseQuery, replacements);
   }
@@ -280,6 +289,7 @@ export class PropertyService {
     bedrooms,
     start_date,
     end_date,
+    purpose,
   }: ISearchPropertiesProps): Promise<any> {
     this.validateSortParams(sort_by, sort_order);
 
@@ -294,6 +304,7 @@ export class PropertyService {
       area_max,
       start_date,
       end_date,
+      purpose,
     });
     const totalCountPromise = this.getTotalCount(baseQuery, replacements);
 
@@ -317,6 +328,7 @@ export class PropertyService {
       bedrooms,
       start_date,
       end_date,
+      purpose,
     });
 
     const [propertiesResult, propertiesMapResult, totalCountResult] = await Promise.allSettled([

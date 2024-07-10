@@ -9,11 +9,12 @@ export class PropertyController {
 
   public getProperties = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { page_size, page_number, sort_by, sort_order } = req.query as {
+      const { page_size, page_number, sort_by, sort_order, purpose } = req.query as {
         page_size: string;
         page_number: string;
         sort_by: SORT_COLUMNS;
         sort_order: SORT_ORDER;
+        purpose: string;
       };
       const city = req.params.city;
       const findAllPropertiesData = await this.property.findAllProperties({
@@ -22,6 +23,7 @@ export class PropertyController {
         page_size: Number(page_size),
         sort_by,
         sort_order,
+        purpose,
       });
       res.status(200).json({ data: { ...findAllPropertiesData, page_number, page_size }, message: 'findAll' });
     } catch (error) {
@@ -39,7 +41,7 @@ export class PropertyController {
   };
   public getPropertyCount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { query, area_min, area_max, price_min, price_max, bedrooms, start_date, end_date } = req.query as {
+      const { query, area_min, area_max, price_min, price_max, bedrooms, start_date, end_date, purpose } = req.query as {
         query: string;
         area_min: string;
         area_max: string;
@@ -48,6 +50,7 @@ export class PropertyController {
         bedrooms: string;
         start_date: string;
         end_date: string;
+        purpose: string;
       };
       const propertyCount = await this.property.getPropertiesCountMap({
         city: req.params.city,
@@ -59,6 +62,7 @@ export class PropertyController {
         bedrooms,
         start_date,
         end_date,
+        purpose,
       });
       res.status(200).json({ data: propertyCount, message: 'count' });
     } catch (error) {
@@ -88,6 +92,7 @@ export class PropertyController {
       bedrooms,
       start_date,
       end_date,
+      purpose,
     } = req.query as {
       query: string;
       page_number: string;
@@ -102,6 +107,7 @@ export class PropertyController {
       bedrooms: string;
       start_date: string;
       end_date: string;
+      purpose: string;
     };
 
     try {
@@ -120,6 +126,7 @@ export class PropertyController {
         bedrooms,
         start_date,
         end_date,
+        purpose,
       });
 
       res.json({
@@ -132,15 +139,17 @@ export class PropertyController {
   };
   public getFeaturedProperties = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { page_number, page_size } = req.query as {
+      const { page_number, page_size, purpose } = req.query as {
         page_number: string;
         page_size: string;
+        purpose: string;
       };
       const featuredProperties = await this.property.searchProperties({
         page_number: Number(page_number),
         page_size: Number(page_size),
         sort_by: SORT_COLUMNS.PRICE,
         price_min: FEATURED_PROPERTY_PRICE_THRESHOLD,
+        purpose,
       });
       res.status(200).json({ data: { ...featuredProperties, page_number, page_size }, message: 'featured-properties' });
     } catch (error) {
@@ -149,10 +158,11 @@ export class PropertyController {
   };
   public getSimilarProperties = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { page_number, page_size, id } = req.query as {
+      const { page_number, page_size, id, purpose } = req.query as {
         id: string;
         page_size: string;
         page_number: string;
+        purpose: string;
       };
       const property = await this.property.findPropertyById(Number(id));
       const similarProperties = await this.property.searchProperties({
@@ -161,6 +171,7 @@ export class PropertyController {
         sort_by: SORT_COLUMNS.ID,
         search: property[0].location,
         property_type: property[0].type,
+        purpose,
       });
       res.status(200).json({ data: { ...similarProperties, page_number, page_size }, message: 'similar-properties' });
     } catch (error) {
