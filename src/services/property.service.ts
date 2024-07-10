@@ -1,4 +1,4 @@
-import { Service } from 'typedi';
+import Container, { Service } from 'typedi';
 import { QueryTypes } from 'sequelize';
 import { sequelize } from '@config/sequelize';
 import { POPULARITY_TREND_URL, AREA_TREND_URL, CONTACT_URL } from '@config/index';
@@ -15,9 +15,11 @@ import {
 import { getPropertyTypes } from '@/utils/helpers';
 import { logger } from '@/utils/logger';
 import axios, { AxiosResponse } from 'axios';
+import { RedisService } from './redis.service';
 
 @Service()
 export class PropertyService {
+  private redis = Container.get(RedisService);
   private validateSortParams(sort_by: SORT_COLUMNS, sort_order: SORT_ORDER) {
     if (!Object.values(SORT_COLUMNS).includes(sort_by)) {
       throw new Error('Invalid sort_by column');
@@ -73,24 +75,37 @@ export class PropertyService {
   }
   private async getTotalCount(baseQuery: string, replacements: any): Promise<number> {
     const countQuery = `SELECT COUNT(*) as total ${baseQuery};`;
+    const cacheKey = `getTotalCount:${Buffer.from(countQuery + JSON.stringify(replacements)).toString('base64')}`;
+    const cachedResult = await this.redis.getRedisValue(cacheKey);
+    if (cachedResult) {
+      return JSON.parse(cachedResult)[0]['total'];
+    }
     const countResult = await sequelize.query(countQuery, {
       type: QueryTypes.SELECT,
       replacements,
     });
+    await this.redis.setRedisValue({ key: cacheKey, value: JSON.stringify(countResult) });
     return countResult[0]['total'];
   }
 
   private async getTotalCountGroupedByTypes(baseQuery: string, replacements: any): Promise<{ [key: string]: number }> {
     const countQuery = `SELECT type, COUNT(*) as total ${baseQuery} GROUP BY type;`;
+    const cacheKey = `getTotalCountGroupedByTypes:${Buffer.from(countQuery + JSON.stringify(replacements)).toString('base64')}`;
+    const cachedResult = await this.redis.getRedisValue(cacheKey);
+    if (cachedResult) {
+      return JSON.parse(cachedResult);
+    }
     const countResult = await sequelize.query(countQuery, {
       type: QueryTypes.SELECT,
       replacements,
     });
 
-    return countResult.reduce<{ [key: string]: number }>((map, row: { type: string; total: number }) => {
+    const map = countResult.reduce<{ [key: string]: number }>((map, row: { type: string; total: number }) => {
       map[row.type] = row.total;
       return map;
     }, {});
+    await this.redis.setRedisValue({ key: cacheKey, value: JSON.stringify(map) });
+    return map;
   }
   private constructBaseQuery({
     city,
