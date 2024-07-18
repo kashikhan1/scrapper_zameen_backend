@@ -23,7 +23,27 @@ module.exports = {
         allowNull: true,
       },
       type: {
-        type: Sequelize.DataTypes.STRING,
+        type: Sequelize.DataTypes.ENUM(
+          'agricultural_land',
+          'building',
+          'commercial_plot',
+          'factory',
+          'farm_house',
+          'flat',
+          'house',
+          'industrial_land',
+          'office',
+          'other',
+          'penthouse',
+          'plot_file',
+          'plot_form',
+          'residential_plot',
+          'room',
+          'shop',
+          'lower_portion',
+          'upper_portion',
+          'warehouse',
+        ),
         allowNull: true,
       },
       price: {
@@ -49,7 +69,7 @@ module.exports = {
         allowNull: true,
       },
       purpose: {
-        type: Sequelize.DataTypes.ENUM('FOR SALE', 'FOR RENT'),
+        type: Sequelize.DataTypes.ENUM('for_sale', 'for_rent'),
         allowNull: true,
       },
       bedroom: {
@@ -126,15 +146,15 @@ module.exports = {
     await queryInterface.addIndex(TABLE_NAME, ['city_id']);
   },
   async down(queryInterface, _Sequelize) {
-    // await queryInterface.removeIndex(TABLE_NAME, ['city_id']);
-    // await queryInterface.removeIndex(TABLE_NAME, ['location_id']);
-    // await queryInterface.removeIndex(TABLE_NAME, ['added']);
-    // await queryInterface.removeIndex(TABLE_NAME, ['purpose']);
-    // await queryInterface.removeIndex(TABLE_NAME, ['type']);
-    // await queryInterface.removeIndex(TABLE_NAME, ['area']);
-    // await queryInterface.removeIndex(TABLE_NAME, ['bedroom']);
-    // await queryInterface.removeIndex(TABLE_NAME, ['bath']);
-    // await queryInterface.removeIndex(TABLE_NAME, ['price']);
+    await queryInterface.removeIndex(TABLE_NAME, ['city_id']);
+    await queryInterface.removeIndex(TABLE_NAME, ['location_id']);
+    await queryInterface.removeIndex(TABLE_NAME, ['added']);
+    await queryInterface.removeIndex(TABLE_NAME, ['purpose']);
+    await queryInterface.removeIndex(TABLE_NAME, ['type']);
+    await queryInterface.removeIndex(TABLE_NAME, ['area']);
+    await queryInterface.removeIndex(TABLE_NAME, ['bedroom']);
+    await queryInterface.removeIndex(TABLE_NAME, ['bath']);
+    await queryInterface.removeIndex(TABLE_NAME, ['price']);
     await queryInterface.dropTable(TABLE_NAME);
   },
 };

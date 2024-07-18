@@ -22,4 +22,5 @@ export const {
   FEATURED_PROPERTY_PRICE_THRESHOLD,
   CREDENTIALS,
   CACHE_EXPIRY_SECONDS,
+  REDIS_DB_URL,
 } = envVarsSchema.parse(process.env);
