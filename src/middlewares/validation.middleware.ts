@@ -122,7 +122,7 @@ export const validatePurposeFilter = async (req: Request, res: Response, next: N
   try {
     const { purpose = '' } = req.query as { purpose: string };
     const dbPurpose = await getPropertyPurpose();
-    if (!dbPurpose.map(v => v.toLowerCase()).includes(purpose.toLowerCase())) {
+    if (!dbPurpose.includes(purpose)) {
       return res.status(400).json({ message: `Invalid purpose parameter. It must be one of following: ${dbPurpose.join(',')}.` });
     }
     next();
