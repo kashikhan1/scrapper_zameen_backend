@@ -5,35 +5,39 @@ const { TABLE_NAME: CITIES_TABLE } = require('../migrations/20240713080551-creat
 const { TABLE_NAME: LOCATIONS_TABLE } = require('../migrations/20240714103816-locations');
 const { TABLE_NAME: PROPERTIES_TABLE } = require('../migrations/20240715121921-create-properties');
 
+export type PropertyType =
+  | 'agricultural_land'
+  | 'building'
+  | 'commercial_plot'
+  | 'factory'
+  | 'farm_house'
+  | 'flat'
+  | 'house'
+  | 'industrial_land'
+  | 'office'
+  | 'other'
+  | 'penthouse'
+  | 'plot_file'
+  | 'plot_form'
+  | 'residential_plot'
+  | 'room'
+  | 'shop'
+  | 'lower_portion'
+  | 'upper_portion'
+  | 'warehouse';
+
+export type PropertyPurposeType = 'for_sale' | 'for_rent';
+
 interface PropertiesModel extends Model<InferAttributes<PropertiesModel>, InferCreationAttributes<PropertiesModel>> {
   id: CreationOptional<number>;
   desc: string;
   header: string;
-  type:
-    | 'agricultural_land'
-    | 'building'
-    | 'commercial_plot'
-    | 'factory'
-    | 'farm_house'
-    | 'flat'
-    | 'house'
-    | 'industrial_land'
-    | 'office'
-    | 'other'
-    | 'penthouse'
-    | 'plot_file'
-    | 'plot_form'
-    | 'residential_plot'
-    | 'room'
-    | 'shop'
-    | 'lower_portion'
-    | 'upper_portion'
-    | 'warehouse';
+  type: PropertyType;
   price: number;
   location_id: number;
   bath: number;
   area: number;
-  purpose: 'for_sale' | 'for_rent';
+  purpose: PropertyPurposeType;
   bedroom: number;
   added: Date;
   initial_amount: string;
