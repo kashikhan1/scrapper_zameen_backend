@@ -1,11 +1,57 @@
 import { sequelize } from '@/config/sequelize';
-import { DataTypes, literal } from 'sequelize';
+import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, literal, Model } from 'sequelize';
 
 const { TABLE_NAME: CITIES_TABLE } = require('../migrations/20240713080551-create-city');
 const { TABLE_NAME: LOCATIONS_TABLE } = require('../migrations/20240714103816-locations');
 const { TABLE_NAME: PROPERTIES_TABLE } = require('../migrations/20240715121921-create-properties');
 
-export const Property = sequelize.define(
+interface PropertiesModel extends Model<InferAttributes<PropertiesModel>, InferCreationAttributes<PropertiesModel>> {
+  id: CreationOptional<number>;
+  desc: string;
+  header: string;
+  type:
+    | 'agricultural_land'
+    | 'building'
+    | 'commercial_plot'
+    | 'factory'
+    | 'farm_house'
+    | 'flat'
+    | 'house'
+    | 'industrial_land'
+    | 'office'
+    | 'other'
+    | 'penthouse'
+    | 'plot_file'
+    | 'plot_form'
+    | 'residential_plot'
+    | 'room'
+    | 'shop'
+    | 'lower_portion'
+    | 'upper_portion'
+    | 'warehouse';
+  price: number;
+  location_id: number;
+  bath: number;
+  area: number;
+  purpose: 'for_sale' | 'for_rent';
+  bedroom: number;
+  added: Date;
+  initial_amount: string;
+  monthly_installment: string;
+  remaining_installments: string;
+  url: string;
+  created_at: Date;
+  updated_at: Date;
+  cover_photo_url: string;
+  available: boolean;
+  features: {
+    category: string;
+    features: string[];
+  }[];
+  city_id: number;
+}
+
+export const Property = sequelize.define<PropertiesModel>(
   'Property',
   {
     id: {
@@ -140,7 +186,14 @@ export const Property = sequelize.define(
   },
 );
 
-export const City = sequelize.define(
+interface CityModel extends Model<InferAttributes<CityModel>, InferCreationAttributes<CityModel>> {
+  id: CreationOptional<number>;
+  name: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export const City = sequelize.define<CityModel>(
   'City',
   {
     id: {
@@ -173,7 +226,14 @@ export const City = sequelize.define(
   },
 );
 
-export const Location = sequelize.define(
+interface LocationModel extends Model<InferAttributes<LocationModel>, InferCreationAttributes<LocationModel>> {
+  id: CreationOptional<number>;
+  name: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export const Location = sequelize.define<LocationModel>(
   'Location',
   {
     id: {
