@@ -120,7 +120,7 @@ export class PropertyService {
     end_date,
     purpose,
   }: IConstructBaseQueryProps): { baseQuery: string; replacements: any } {
-    let baseQuery = `FROM property_v2 WHERE 1=1 `;
+    let baseQuery = `FROM property_v2 WHERE price > 0 `;
     const replacements: any = {};
 
     if (city) {
