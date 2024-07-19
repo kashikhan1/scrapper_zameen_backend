@@ -77,9 +77,9 @@ module.exports = {
         allowNull: true,
       },
       added: {
-        type: Sequelize.DataTypes.BIGINT,
+        type: Sequelize.DataTypes.DATE,
         allowNull: true,
-        defaultValue: 0,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       initial_amount: {
         type: Sequelize.DataTypes.STRING,
