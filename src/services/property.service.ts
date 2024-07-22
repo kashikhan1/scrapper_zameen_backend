@@ -264,12 +264,28 @@ export class PropertyService {
     return { properties, total_count: totalCount };
   }
   public async findPropertyById(propertyId: number) {
-    const property = await sequelize.query(`SELECT * FROM property_v2 WHERE id = :propertyId`, {
-      type: QueryTypes.SELECT,
-      replacements: { propertyId },
+    const property = await Property.findByPk(propertyId, {
+      include: [
+        {
+          model: Location,
+          attributes: [],
+        },
+        {
+          model: City,
+          attributes: [],
+        },
+      ],
+      attributes: {
+        include: [
+          [col('Location.name'), 'location'],
+          [col('City.name'), 'city'],
+        ],
+      },
+      raw: true,
+      nest: false,
     });
-
-    return this.mapPropertiesDetails(property);
+    if (property) return this.mapPropertiesDetails([property]);
+    else return [];
   }
 
   public async availableCitiesData() {
