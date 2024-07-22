@@ -30,7 +30,7 @@ export type PropertyPurposeType = 'for_sale' | 'for_rent';
 
 interface PropertiesModel extends Model<InferAttributes<PropertiesModel>, InferCreationAttributes<PropertiesModel>> {
   id: CreationOptional<number>;
-  desc: string;
+  description: string;
   header: string;
   type: PropertyType;
   price: number;
@@ -64,7 +64,7 @@ export const Property = sequelize.define<PropertiesModel>(
       autoIncrement: true,
       primaryKey: true,
     },
-    desc: {
+    description: {
       type: DataTypes.TEXT,
       allowNull: true,
     },
@@ -187,6 +187,7 @@ export const Property = sequelize.define<PropertiesModel>(
     modelName: 'Property',
     timestamps: false,
     underscored: true,
+    paranoid: true,
   },
 );
 
@@ -227,6 +228,7 @@ export const City = sequelize.define<CityModel>(
     modelName: 'City',
     timestamps: false,
     underscored: true,
+    paranoid: true,
   },
 );
 
@@ -267,5 +269,12 @@ export const Location = sequelize.define<LocationModel>(
     modelName: 'Location',
     timestamps: false,
     underscored: true,
+    paranoid: true,
   },
 );
+
+Property.belongsTo(Location, { foreignKey: 'location_id' });
+Location.hasMany(Property, { foreignKey: 'location_id' });
+
+Property.belongsTo(City, { foreignKey: 'city_id' });
+City.hasMany(Property, { foreignKey: 'city_id' });
