@@ -1,5 +1,5 @@
 import Container, { Service } from 'typedi';
-import { QueryTypes, Op } from 'sequelize';
+import { QueryTypes, Op, col } from 'sequelize';
 import { sequelize } from '@config/sequelize';
 import { POPULARITY_TREND_URL, AREA_TREND_URL, CONTACT_URL } from '@config/index';
 import {
@@ -16,7 +16,7 @@ import { getPropertyTypes } from '@/utils/helpers';
 import { logger } from '@/utils/logger';
 import axios, { AxiosResponse } from 'axios';
 import { RedisService } from './redis.service';
-import { City, Property } from '@/models/models';
+import { City, Location, Property } from '@/models/models';
 
 @Service()
 export class PropertyService {
@@ -226,12 +226,39 @@ export class PropertyService {
         price: {
           [Op.gt]: 0,
         },
-        ...(purpose && { purpose }),
-        ...(cityId && { city_id: cityId }),
+        purpose,
+        ...(city && { city_id: cityId }),
       },
       order: [[sort_by, sort_order]],
       offset: (page_number - 1) * page_size,
       limit: page_size,
+      include: [
+        {
+          model: Location,
+          attributes: [],
+        },
+        {
+          model: City,
+          attributes: [],
+        },
+      ],
+      attributes: [
+        'id',
+        'description',
+        'header',
+        'type',
+        'price',
+        'cover_photo_url',
+        'available',
+        'area',
+        'added',
+        'bedroom',
+        'bath',
+        [col('Location.name'), 'location'],
+        [col('City.name'), 'city'],
+      ],
+      raw: true,
+      nest: false,
     });
 
     return { properties, total_count: totalCount };
