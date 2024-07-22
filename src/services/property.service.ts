@@ -1,5 +1,5 @@
 import Container, { Service } from 'typedi';
-import { QueryTypes } from 'sequelize';
+import { QueryTypes, Op } from 'sequelize';
 import { sequelize } from '@config/sequelize';
 import { POPULARITY_TREND_URL, AREA_TREND_URL, CONTACT_URL } from '@config/index';
 import {
@@ -16,6 +16,7 @@ import { getPropertyTypes } from '@/utils/helpers';
 import { logger } from '@/utils/logger';
 import axios, { AxiosResponse } from 'axios';
 import { RedisService } from './redis.service';
+import { City, Property } from '@/models/models';
 
 @Service()
 export class PropertyService {
@@ -109,13 +110,13 @@ export class PropertyService {
   }
   private constructBaseQuery({
     city,
-    search,
+    search: _a,
     property_types = [],
     bedrooms,
     price_min,
     price_max,
-    area_min,
-    area_max,
+    area_min: _b,
+    area_max: _c,
     start_date,
     end_date,
     purpose,
@@ -128,10 +129,10 @@ export class PropertyService {
       replacements.city = `%${city}%`;
     }
 
-    if (search) {
-      baseQuery += `AND (header ILIKE :search OR location ILIKE :search OR bath ILIKE :search OR purpose ILIKE :search OR initial_amount ILIKE :search OR monthly_installment ILIKE :search OR remaining_installments ILIKE :search) `;
-      replacements.search = `%${search}%`;
-    }
+    // if (search) {
+    //   baseQuery += `AND (header ILIKE :search OR location ILIKE :search OR bath ILIKE :search OR initial_amount ILIKE :search OR monthly_installment ILIKE :search OR remaining_installments ILIKE :search) `;
+    //   replacements.search = `%${search}%`;
+    // }
 
     if (property_types.length > 0) {
       baseQuery += `AND type IN (:property_types) `;
@@ -153,31 +154,31 @@ export class PropertyService {
       replacements.price_max = Number(price_max);
     }
 
-    if (area_min) {
-      baseQuery += `AND (
-          CASE 
-            WHEN area ILIKE '%kanal%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 4500
-            WHEN area ILIKE '%marla%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 225
-            WHEN area ILIKE '%sq. yd.%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 9
-            ELSE 0
-          END
-        )`;
-      baseQuery += ` >= :min_area `;
-      replacements.min_area = Number(area_min);
-    }
+    // if (area_min) {
+    //   baseQuery += `AND (
+    //       CASE
+    //         WHEN area ILIKE '%kanal%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 4500
+    //         WHEN area ILIKE '%marla%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 225
+    //         WHEN area ILIKE '%sq. yd.%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 9
+    //         ELSE 0
+    //       END
+    //     )`;
+    //   baseQuery += ` >= :min_area `;
+    //   replacements.min_area = Number(area_min);
+    // }
 
-    if (area_max) {
-      baseQuery += `AND (
-          CASE 
-            WHEN area ILIKE '%kanal%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 4500
-            WHEN area ILIKE '%marla%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 225
-            WHEN area ILIKE '%sq. yd.%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 9
-            ELSE 0
-          END
-        )`;
-      baseQuery += ` <= :max_area `;
-      replacements.max_area = Number(area_max);
-    }
+    // if (area_max) {
+    //   baseQuery += `AND (
+    //       CASE
+    //         WHEN area ILIKE '%kanal%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 4500
+    //         WHEN area ILIKE '%marla%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 225
+    //         WHEN area ILIKE '%sq. yd.%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 9
+    //         ELSE 0
+    //       END
+    //     )`;
+    //   baseQuery += ` <= :max_area `;
+    //   replacements.max_area = Number(area_max);
+    // }
     const MILLISECONDS_PER_SECOND = 1000;
     if (start_date) {
       baseQuery += `AND added >= :start_date `;
@@ -190,8 +191,8 @@ export class PropertyService {
     }
 
     if (purpose) {
-      baseQuery += `AND purpose ILIKE :purpose `;
-      replacements.purpose = `%${purpose}%`;
+      baseQuery += `AND purpose = :purpose `;
+      replacements.purpose = `${purpose}`;
     }
 
     return { baseQuery, replacements };
@@ -205,30 +206,33 @@ export class PropertyService {
     purpose,
   }: IFindAllPropertiesProps): Promise<any> {
     this.validateSortParams(sort_by, sort_order);
+    let cityId: number | null = null;
 
-    const { baseQuery, replacements } = this.constructBaseQuery({ city, purpose });
-    const totalCountPromise = this.getTotalCount(baseQuery, replacements);
-
-    const offset = (page_number - 1) * page_size;
-
-    const query = `SELECT ${this.selectAllProperties()} ${baseQuery} ORDER BY ${sort_by} ${sort_order} LIMIT :page_size OFFSET :offset`;
-    replacements.page_size = page_size;
-    replacements.offset = offset;
-
-    const propertiesPromise = sequelize.query<IProperty>(query, {
-      type: QueryTypes.SELECT,
-      replacements,
+    if (city) {
+      const cityResponse = await City.findOne({
+        where: {
+          name: {
+            [Op.iLike]: city,
+          },
+        },
+        attributes: ['id'],
+      });
+      if (cityResponse) {
+        cityId = cityResponse?.id;
+      }
+    }
+    const { count: totalCount, rows: properties } = await Property.findAndCountAll({
+      where: {
+        price: {
+          [Op.gt]: 0,
+        },
+        ...(purpose && { purpose }),
+        ...(cityId && { city_id: cityId }),
+      },
+      order: [[sort_by, sort_order]],
+      offset: (page_number - 1) * page_size,
+      limit: page_size,
     });
-    const [propertiesResult, totalCountResult] = await Promise.allSettled([propertiesPromise, totalCountPromise]);
-
-    if (propertiesResult.status === 'rejected') {
-      logger.error(`Error fetching properties: ${propertiesResult.reason}`);
-    }
-    if (totalCountResult.status === 'rejected') {
-      logger.error(`Error fetching total count: ${totalCountResult.reason}`);
-    }
-    const properties = propertiesResult.status === 'fulfilled' ? propertiesResult.value : [];
-    const totalCount = totalCountResult.status === 'fulfilled' ? totalCountResult.value : 0;
 
     return { properties, total_count: totalCount };
   }
