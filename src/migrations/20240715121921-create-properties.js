@@ -14,7 +14,7 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true,
       },
-      desc: {
+      description: {
         type: Sequelize.DataTypes.TEXT,
         allowNull: true,
       },
