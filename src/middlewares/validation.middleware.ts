@@ -70,7 +70,11 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
   if (req.query.price_max == null) {
     req.query.price_max = '';
   }
-  if (req.query.bedrooms == null || req.query.bedrooms.toString().toLowerCase() === 'all') {
+  if (
+    req.query.bedrooms == null ||
+    req.query.bedrooms.toString().toLowerCase() === 'all' ||
+    req.query.bedrooms.toString().toLowerCase() === 'studio'
+  ) {
     req.query.bedrooms = '';
   }
   if (req.query.start_date == null) {
@@ -121,7 +125,10 @@ export const validatePropertyId = (req: Request, res: Response, next: NextFuncti
 
 export const validatePurposeFilter = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { purpose = 'for_sale' } = req.query as { purpose: PropertyPurposeType };
+    if (req.query.purpose == null) {
+      req.query.purpose = 'for_sale';
+    }
+    const { purpose } = req.query as { purpose: PropertyPurposeType };
     const dbPurpose = await getPropertyPurpose();
     if (!dbPurpose.includes(purpose)) {
       return res.status(400).json({ message: `Invalid purpose parameter. It must be one of following: ${dbPurpose.join(',')}.` });

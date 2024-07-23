@@ -9,6 +9,7 @@ export enum SORT_ORDER {
 export enum SORT_COLUMNS {
   PRICE = 'price',
   ID = 'id',
+  ADDED = 'added',
 }
 
 export enum AVAILABLE_CITIES {
@@ -73,6 +74,20 @@ export interface IFindAllPropertiesProps {
   sort_by?: SORT_COLUMNS;
   sort_order?: SORT_ORDER;
   purpose?: string;
+}
+
+export interface IGetWhereClauseProps {
+  city?: string;
+  search?: string;
+  area_min?: string;
+  area_max?: string;
+  price_min?: string;
+  price_max?: string;
+  bedrooms?: string;
+  start_date?: string;
+  end_date?: string;
+  purpose?: string;
+  property_type?: string;
 }
 // export interface IProperty {
 //   id: number;

@@ -28,7 +28,7 @@ export type PropertyType =
 
 export type PropertyPurposeType = 'for_sale' | 'for_rent';
 
-interface PropertiesModel extends Model<InferAttributes<PropertiesModel>, InferCreationAttributes<PropertiesModel>> {
+export interface PropertiesModel extends Model<InferAttributes<PropertiesModel>, InferCreationAttributes<PropertiesModel>> {
   id: CreationOptional<number>;
   description: string;
   header: string;
@@ -191,7 +191,7 @@ export const Property = sequelize.define<PropertiesModel>(
   },
 );
 
-interface CityModel extends Model<InferAttributes<CityModel>, InferCreationAttributes<CityModel>> {
+export interface CityModel extends Model<InferAttributes<CityModel>, InferCreationAttributes<CityModel>> {
   id: CreationOptional<number>;
   name: string;
   created_at: Date;
@@ -232,7 +232,7 @@ export const City = sequelize.define<CityModel>(
   },
 );
 
-interface LocationModel extends Model<InferAttributes<LocationModel>, InferCreationAttributes<LocationModel>> {
+export interface LocationModel extends Model<InferAttributes<LocationModel>, InferCreationAttributes<LocationModel>> {
   id: CreationOptional<number>;
   name: string;
   created_at: Date;
