@@ -219,13 +219,10 @@ export class PropertyService {
       ...(property_type && { type: property_type }),
       ...(search && { location_id: locationId }),
       ...(city && { city_id: cityId }),
-      ...(area_min && { area: { [Op.gte]: area_min } }),
-      ...(area_max && { area: { [Op.lt]: area_max } }),
-      ...(price_min && { price: { [Op.gte]: price_min } }),
-      ...(price_max && { price: { [Op.lt]: price_max } }),
+      ...((area_min || area_max) && { area: { ...(area_min && { [Op.gte]: area_min }), ...(area_max && { [Op.lt]: area_max }) } }),
+      ...((price_min || price_max) && { price: { ...(price_min && { [Op.gte]: price_min }), ...(price_max && { [Op.lt]: price_max }) } }),
       ...(bedrooms && { bedroom: { [Op.in]: bedrooms.split(',').map(Number) } }),
-      ...(start_date && { added: { [Op.gte]: start_date } }),
-      ...(end_date && { added: { [Op.lt]: end_date } }),
+      ...((start_date || end_date) && { added: { ...(start_date && { [Op.gte]: start_date }), ...(end_date && { [Op.lt]: end_date }) } }),
     };
   }
 
