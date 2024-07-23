@@ -1,13 +1,13 @@
 import { Service } from 'typedi';
 import { createClient, RedisClientType } from 'redis';
 import { logger } from '@/utils/logger';
-import { CACHE_EXPIRY_SECONDS } from '@/config/index';
+import { CACHE_EXPIRY_SECONDS, REDIS_DB_URL } from '@/config/index';
 
 @Service()
 export class RedisService {
   private redisClient: RedisClientType;
   constructor() {
-    this.redisClient = createClient({ url: 'redis://redis:6379' });
+    this.redisClient = createClient({ url: REDIS_DB_URL });
     this.redisClient.on('error', err => {
       logger.error('Redis Client Error', err);
     });

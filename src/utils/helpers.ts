@@ -1,12 +1,16 @@
-import { QueryTypes } from 'sequelize';
 import { sequelize } from '@/config/sequelize';
+import { Property } from '@/models/models';
 
 export const getPropertyTypes = async () => {
-  return (await sequelize.query('SELECT DISTINCT type FROM property_v2;', { type: QueryTypes.SELECT })).map(item => item?.['type']);
+  const result = await Property.findAll({
+    attributes: [[sequelize.fn('DISTINCT', sequelize.col('type')), 'type']],
+  });
+  return result.map(item => item?.['type']).filter(item => item != null);
 };
 
 export const getPropertyPurpose = async () => {
-  return (await sequelize.query<{ purpose: string }>('SELECT DISTINCT purpose FROM property_v2;', { type: QueryTypes.SELECT }))
-    .map(item => item?.['purpose'])
-    .filter(item => item != null);
+  const result = await Property.findAll({
+    attributes: [[sequelize.fn('DISTINCT', sequelize.col('purpose')), 'purpose']],
+  });
+  return result.map(item => item?.['purpose']).filter(item => item != null);
 };

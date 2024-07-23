@@ -14,8 +14,8 @@
     "lint:fix": "eslint --fix",
     "deploy:prod": "docker compose up -d --build",
     "deploy:dev": "docker compose up -d --build",
-    "migrate:up": "npx sequelize-cli db:migrate",
-    "migrate:undo": "npx sequelize-cli db:migrate:undo",
+    "migrate:up": "pnpm dlx sequelize-cli db:migrate",
+    "migrate:undo": "pnpm dlx sequelize-cli db:migrate:undo",
     "prepare": "husky"
   },
   "dependencies": {
@@ -41,14 +41,14 @@
     "openapi3-ts": "^4.3.3",
     "pg": "^8.12.0",
     "pg-hstore": "^2.3.4",
-    "redis": "^4.6.14",
+    "redis": "^4.6.15",
     "reflect-metadata": "^0.2.2",
     "sequelize": "^6.37.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "tslib": "^2.6.3",
     "typedi": "^0.10.0",
-    "winston": "^3.13.0",
+    "winston": "^3.13.1",
     "winston-daily-rotate-file": "^5.0.0",
     "zod": "^3.23.8"
   },

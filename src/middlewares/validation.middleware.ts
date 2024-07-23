@@ -4,6 +4,7 @@ import { NextFunction, Request, Response } from 'express';
 import { HttpException } from '@exceptions/HttpException';
 import { AVAILABLE_CITIES } from '@/types';
 import { getPropertyPurpose, getPropertyTypes } from '@/utils/helpers';
+import { PropertyPurposeType, PropertyType } from '@/models/models';
 
 /**
  * @name ValidationMiddleware
@@ -69,7 +70,11 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
   if (req.query.price_max == null) {
     req.query.price_max = '';
   }
-  if (req.query.bedrooms == null || req.query.bedrooms.toString().toLowerCase() === 'all') {
+  if (
+    req.query.bedrooms == null ||
+    req.query.bedrooms.toString().toLowerCase() === 'all' ||
+    req.query.bedrooms.toString().toLowerCase() === 'studio'
+  ) {
     req.query.bedrooms = '';
   }
   if (req.query.start_date == null) {
@@ -96,7 +101,7 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
       return res.status(400).json({ message: 'Invalid price parameters. Both price_min and price_max must be valid numbers.' });
     case bedrooms && bedrooms.split(',').some(v => isNaN(Number(v))):
       return res.status(400).json({ message: 'Invalid bedrooms parameter. It must be a valid number.' });
-    case property_type && !PROPERTY_TYPES.includes(property_type as string):
+    case property_type && !PROPERTY_TYPES.includes(property_type as PropertyType):
       return res.status(400).json({ message: `Invalid property_type parameter. It must be one of following: ${PROPERTY_TYPES.join(', ')}` });
     case isNaN(Number(area_min)) || Number(area_min) < 0:
     case area_max && (isNaN(Number(area_max)) || Number(area_max) < 0):
@@ -120,9 +125,12 @@ export const validatePropertyId = (req: Request, res: Response, next: NextFuncti
 
 export const validatePurposeFilter = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { purpose = '' } = req.query as { purpose: string };
+    if (req.query.purpose == null) {
+      req.query.purpose = 'for_sale';
+    }
+    const { purpose } = req.query as { purpose: PropertyPurposeType };
     const dbPurpose = await getPropertyPurpose();
-    if (!dbPurpose.map(v => v.toLowerCase()).includes(purpose.toLowerCase())) {
+    if (!dbPurpose.includes(purpose)) {
       return res.status(400).json({ message: `Invalid purpose parameter. It must be one of following: ${dbPurpose.join(',')}.` });
     }
     next();

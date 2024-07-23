@@ -23,4 +23,5 @@ export const envVarsSchema = object({
   CREDENTIALS: string()
     .min(1)
     .transform(value => value === 'true'),
+  REDIS_DB_URL: string().min(1),
 });
