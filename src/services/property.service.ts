@@ -1,26 +1,20 @@
-import Container, { Service } from 'typedi';
-import { QueryTypes, Op, col } from 'sequelize';
-import { sequelize } from '@config/sequelize';
+import { Service } from 'typedi';
+import { FindAttributeOptions, InferAttributes, Op, WhereOptions, col, fn } from 'sequelize';
 import { POPULARITY_TREND_URL, AREA_TREND_URL, CONTACT_URL } from '@config/index';
 import {
   AVAILABLE_CITIES,
-  IConstructBaseQueryProps,
   IFindAllPropertiesProps,
   IGetPropertiesCountMapProps,
-  IProperty,
+  IGetWhereClauseProps,
   ISearchPropertiesProps,
   SORT_COLUMNS,
   SORT_ORDER,
 } from '@/types';
-import { getPropertyTypes } from '@/utils/helpers';
-import { logger } from '@/utils/logger';
 import axios, { AxiosResponse } from 'axios';
-import { RedisService } from './redis.service';
-import { City, Location, Property } from '@/models/models';
+import { City, Location, PropertiesModel, Property } from '@/models/models';
 
 @Service()
 export class PropertyService {
-  private redis = Container.get(RedisService);
   private validateSortParams(sort_by: SORT_COLUMNS, sort_order: SORT_ORDER) {
     if (!Object.values(SORT_COLUMNS).includes(sort_by)) {
       throw new Error('Invalid sort_by column');
@@ -30,22 +24,32 @@ export class PropertyService {
     }
   }
 
-  private selectAllProperties(): string {
-    const properties: (keyof IProperty)[] = [
+  private async findCityId(city: string): Promise<number | null> {
+    if (!city) return null;
+
+    const cityResponse = await City.findOne({
+      where: { name: { [Op.iLike]: city } },
+      attributes: ['id'],
+    });
+    return cityResponse?.id ?? null;
+  }
+
+  private selectAttributes(): FindAttributeOptions {
+    return [
       'id',
-      'desc',
+      'description',
       'header',
       'type',
       'price',
       'cover_photo_url',
       'available',
       'area',
-      'location',
       'added',
       'bedroom',
       'bath',
+      [col('Location.name'), 'location'],
+      [col('City.name'), 'city'],
     ];
-    return properties.map(property => `"${property}"`).join(',');
   }
 
   private async mapPropertiesDetails(properties: object[]) {
@@ -74,129 +78,7 @@ export class PropertyService {
     );
     return promises.map(promise => (promise.status === 'fulfilled' ? promise.value : null)).filter(v => v != null);
   }
-  private async getTotalCount(baseQuery: string, replacements: any): Promise<number> {
-    const countQuery = `SELECT COUNT(*) as total ${baseQuery};`;
-    const cacheKey = `getTotalCount:${Buffer.from(countQuery + JSON.stringify(replacements)).toString('base64')}`;
-    const cachedResult = await this.redis.getRedisValue(cacheKey);
-    if (cachedResult) {
-      return JSON.parse(cachedResult)[0]['total'];
-    }
-    const countResult = await sequelize.query(countQuery, {
-      type: QueryTypes.SELECT,
-      replacements,
-    });
-    await this.redis.setRedisValue({ key: cacheKey, value: JSON.stringify(countResult) });
-    return countResult[0]['total'];
-  }
 
-  private async getTotalCountGroupedByTypes(baseQuery: string, replacements: any): Promise<{ [key: string]: number }> {
-    const countQuery = `SELECT type, COUNT(*) as total ${baseQuery} GROUP BY type;`;
-    const cacheKey = `getTotalCountGroupedByTypes:${Buffer.from(countQuery + JSON.stringify(replacements)).toString('base64')}`;
-    const cachedResult = await this.redis.getRedisValue(cacheKey);
-    if (cachedResult) {
-      return JSON.parse(cachedResult);
-    }
-    const countResult = await sequelize.query(countQuery, {
-      type: QueryTypes.SELECT,
-      replacements,
-    });
-
-    const map = countResult.reduce<{ [key: string]: number }>((map, row: { type: string; total: number }) => {
-      map[row.type] = row.total;
-      return map;
-    }, {});
-    await this.redis.setRedisValue({ key: cacheKey, value: JSON.stringify(map) });
-    return map;
-  }
-  private constructBaseQuery({
-    city,
-    search: _a,
-    property_types = [],
-    bedrooms,
-    price_min,
-    price_max,
-    area_min: _b,
-    area_max: _c,
-    start_date,
-    end_date,
-    purpose,
-  }: IConstructBaseQueryProps): { baseQuery: string; replacements: any } {
-    let baseQuery = `FROM property_v2 WHERE 1=1 `;
-    const replacements: any = {};
-
-    if (city) {
-      baseQuery += `AND location ILIKE :city `;
-      replacements.city = `%${city}%`;
-    }
-
-    // if (search) {
-    //   baseQuery += `AND (header ILIKE :search OR location ILIKE :search OR bath ILIKE :search OR initial_amount ILIKE :search OR monthly_installment ILIKE :search OR remaining_installments ILIKE :search) `;
-    //   replacements.search = `%${search}%`;
-    // }
-
-    if (property_types.length > 0) {
-      baseQuery += `AND type IN (:property_types) `;
-      replacements.property_types = property_types;
-    }
-
-    if (bedrooms) {
-      baseQuery += `AND bedroom IN (:bedrooms) `;
-      replacements.bedrooms = bedrooms.split(',');
-    }
-
-    if (price_min) {
-      baseQuery += `AND price >= :price_min `;
-      replacements.price_min = Number(price_min);
-    }
-
-    if (price_max) {
-      baseQuery += `AND price <= :price_max `;
-      replacements.price_max = Number(price_max);
-    }
-
-    // if (area_min) {
-    //   baseQuery += `AND (
-    //       CASE
-    //         WHEN area ILIKE '%kanal%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 4500
-    //         WHEN area ILIKE '%marla%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 225
-    //         WHEN area ILIKE '%sq. yd.%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 9
-    //         ELSE 0
-    //       END
-    //     )`;
-    //   baseQuery += ` >= :min_area `;
-    //   replacements.min_area = Number(area_min);
-    // }
-
-    // if (area_max) {
-    //   baseQuery += `AND (
-    //       CASE
-    //         WHEN area ILIKE '%kanal%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 4500
-    //         WHEN area ILIKE '%marla%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 225
-    //         WHEN area ILIKE '%sq. yd.%' THEN CAST(REPLACE(SPLIT_PART(area, ' ', 1), ',', '') AS double precision) * 9
-    //         ELSE 0
-    //       END
-    //     )`;
-    //   baseQuery += ` <= :max_area `;
-    //   replacements.max_area = Number(area_max);
-    // }
-    const MILLISECONDS_PER_SECOND = 1000;
-    if (start_date) {
-      baseQuery += `AND added >= :start_date `;
-      replacements.start_date = Date.parse(start_date) / MILLISECONDS_PER_SECOND;
-    }
-
-    if (end_date) {
-      baseQuery += `AND added < :end_date `;
-      replacements.end_date = Date.parse(end_date) / MILLISECONDS_PER_SECOND;
-    }
-
-    if (purpose) {
-      baseQuery += `AND purpose = :purpose `;
-      replacements.purpose = `${purpose}`;
-    }
-
-    return { baseQuery, replacements };
-  }
   public async findAllProperties({
     city,
     page_number,
@@ -206,21 +88,7 @@ export class PropertyService {
     purpose,
   }: IFindAllPropertiesProps): Promise<any> {
     this.validateSortParams(sort_by, sort_order);
-    let cityId: number | null = null;
-
-    if (city) {
-      const cityResponse = await City.findOne({
-        where: {
-          name: {
-            [Op.iLike]: city,
-          },
-        },
-        attributes: ['id'],
-      });
-      if (cityResponse) {
-        cityId = cityResponse?.id;
-      }
-    }
+    const cityId = await this.findCityId(city);
     const { count: totalCount, rows: properties } = await Property.findAndCountAll({
       where: {
         price: {
@@ -242,21 +110,7 @@ export class PropertyService {
           attributes: [],
         },
       ],
-      attributes: [
-        'id',
-        'description',
-        'header',
-        'type',
-        'price',
-        'cover_photo_url',
-        'available',
-        'area',
-        'added',
-        'bedroom',
-        'bath',
-        [col('Location.name'), 'location'],
-        [col('City.name'), 'city'],
-      ],
+      attributes: this.selectAttributes(),
       raw: true,
       nest: false,
     });
@@ -291,6 +145,18 @@ export class PropertyService {
   public async availableCitiesData() {
     return Object.values(AVAILABLE_CITIES);
   }
+
+  private async getCountMap(whereClause: WhereOptions<InferAttributes<PropertiesModel>>) {
+    const countMap = await Property.count({
+      where: whereClause,
+      attributes: ['type', [fn('COUNT', col('type')), 'count']],
+      group: 'type',
+    });
+    return countMap.reduce((acc, item) => {
+      acc[item.type as string] = item.count;
+      return acc;
+    }, {});
+  }
   public async getPropertiesCountMap({
     city,
     search,
@@ -303,32 +169,74 @@ export class PropertyService {
     end_date,
     purpose,
   }: IGetPropertiesCountMapProps) {
-    const propertyTypes = await getPropertyTypes();
-
-    const { baseQuery, replacements } = this.constructBaseQuery({
+    const whereClause = await this.getWhereClause({
       city,
       search,
-      property_types: propertyTypes,
-      bedrooms,
-      price_min,
-      price_max,
       area_min,
       area_max,
+      price_min,
+      price_max,
+      bedrooms,
       start_date,
       end_date,
       purpose,
     });
-    return this.getTotalCountGroupedByTypes(baseQuery, replacements);
+    return this.getCountMap(whereClause);
+  }
+  public async getLocationId(location: string): Promise<number | null> {
+    if (!location) return null;
+
+    const locationResponse = await Location.findOne({
+      where: {
+        name: {
+          [Op.iLike]: `%${location}%`,
+        },
+      },
+      attributes: ['id'],
+    });
+    return locationResponse?.id ?? null;
+  }
+
+  public async getWhereClause({
+    city,
+    search,
+    area_min,
+    area_max,
+    price_min,
+    price_max,
+    bedrooms,
+    start_date,
+    end_date,
+    purpose,
+    property_type,
+  }: IGetWhereClauseProps): Promise<WhereOptions<InferAttributes<PropertiesModel>>> {
+    const cityIdPromise = this.findCityId(city);
+    const locationIdPromise = this.getLocationId(search);
+    const [cityId, locationId] = await Promise.all([cityIdPromise, locationIdPromise]);
+    return {
+      purpose,
+      price: { [Op.gt]: 0 },
+      ...(property_type && { type: property_type }),
+      ...(locationId && { location_id: locationId }),
+      ...(cityId && { city_id: cityId }),
+      ...(area_min && { area: { [Op.gte]: area_min } }),
+      ...(area_max && { area: { [Op.lt]: area_max } }),
+      ...(price_min && { price: { [Op.gte]: price_min } }),
+      ...(price_max && { price: { [Op.lt]: price_max } }),
+      ...(bedrooms && { bedroom: { [Op.in]: bedrooms.split(',').map(Number) } }),
+      ...(start_date && { added: { [Op.gte]: start_date } }),
+      ...(end_date && { added: { [Op.lt]: end_date } }),
+    };
   }
 
   public async autoCompleteLocation(search: string) {
-    const query = `SELECT DISTINCT location FROM property_v2 WHERE location ILIKE :search LIMIT 10`;
-    return (
-      await sequelize.query<{ location: string }>(query, {
-        type: QueryTypes.SELECT,
-        replacements: { search: `%${search}%` },
-      })
-    ).map(item => item.location);
+    const locationResponse = await Location.findAll({
+      where: search ? { name: { [Op.iLike]: `%${search}%` } } : {},
+      attributes: ['name'],
+      limit: 10,
+      raw: true,
+    });
+    return locationResponse.map(location => location.name);
   }
 
   public async searchProperties({
@@ -350,34 +258,8 @@ export class PropertyService {
   }: ISearchPropertiesProps): Promise<any> {
     this.validateSortParams(sort_by, sort_order);
 
-    const { baseQuery, replacements } = this.constructBaseQuery({
-      city,
-      search,
-      property_types: property_type ? [property_type] : [],
-      bedrooms,
-      price_min,
-      price_max,
-      area_min,
-      area_max,
-      start_date,
-      end_date,
-      purpose,
-    });
-    const totalCountPromise = this.getTotalCount(baseQuery, replacements);
-
-    const offset = (page_number - 1) * page_size;
-
-    const query = `SELECT ${this.selectAllProperties()} ${baseQuery} ORDER BY ${sort_by} ${sort_order} LIMIT :page_size OFFSET :offset`;
-    replacements.page_size = page_size;
-    replacements.offset = offset;
-
-    const propertiesPromise = sequelize.query<IProperty>(query, {
-      type: QueryTypes.SELECT,
-      replacements,
-    });
-    const getPropertiesCountMapPromise = this.getPropertiesCountMap({
-      city,
-      search,
+    const whereClause = await this.getWhereClause({
+      property_type,
       area_min,
       area_max,
       price_min,
@@ -386,25 +268,30 @@ export class PropertyService {
       start_date,
       end_date,
       purpose,
+      city,
+      search,
     });
-
-    const [propertiesResult, propertiesMapResult, totalCountResult] = await Promise.allSettled([
-      propertiesPromise,
-      getPropertiesCountMapPromise,
-      totalCountPromise,
-    ]);
-    if (propertiesResult.status === 'rejected') {
-      logger.error(`Error fetching properties: ${propertiesResult.reason}`);
-    }
-    if (propertiesMapResult.status === 'rejected') {
-      logger.error(`Error fetching properties map: ${propertiesMapResult.reason}`);
-    }
-    if (totalCountResult.status === 'rejected') {
-      logger.error(`Error fetching total count: ${totalCountResult.reason}`);
-    }
-    const properties = propertiesResult.status === 'fulfilled' ? propertiesResult.value : [];
-    const propertiesMap = propertiesMapResult.status === 'fulfilled' ? propertiesMapResult.value : {};
-    const totalCount = totalCountResult.status === 'fulfilled' ? totalCountResult.value : 0;
+    const propertiesMapPromise = this.getCountMap(whereClause);
+    const findAndCountAllPromise = Property.findAndCountAll({
+      where: whereClause,
+      order: [[sort_by, sort_order]],
+      offset: (page_number - 1) * page_size,
+      limit: page_size,
+      include: [
+        {
+          model: Location,
+          attributes: [],
+        },
+        {
+          model: City,
+          attributes: [],
+        },
+      ],
+      attributes: this.selectAttributes(),
+      raw: true,
+      nest: false,
+    });
+    const [propertiesMap, { count: totalCount, rows: properties }] = await Promise.all([propertiesMapPromise, findAndCountAllPromise]);
     return {
       properties,
       total_count: totalCount,
