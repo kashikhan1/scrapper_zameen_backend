@@ -217,8 +217,8 @@ export class PropertyService {
       purpose,
       price: { [Op.gt]: 0 },
       ...(property_type && { type: property_type }),
-      ...(locationId && { location_id: locationId }),
-      ...(cityId && { city_id: cityId }),
+      ...(search && { location_id: locationId }),
+      ...(city && { city_id: cityId }),
       ...(area_min && { area: { [Op.gte]: area_min } }),
       ...(area_max && { area: { [Op.lt]: area_max } }),
       ...(price_min && { price: { [Op.gte]: price_min } }),
@@ -271,7 +271,7 @@ export class PropertyService {
       city,
       search,
     });
-    const propertiesMapPromise = this.getCountMap(whereClause);
+
     const findAndCountAllPromise = Property.findAndCountAll({
       where: whereClause,
       order: [[sort_by, sort_order]],
@@ -291,11 +291,10 @@ export class PropertyService {
       raw: true,
       nest: false,
     });
-    const [propertiesMap, { count: totalCount, rows: properties }] = await Promise.all([propertiesMapPromise, findAndCountAllPromise]);
+    const [{ count: totalCount, rows: properties }] = await Promise.all([findAndCountAllPromise]);
     return {
       properties,
       total_count: totalCount,
-      property_count_map: propertiesMap,
     };
   }
 }
