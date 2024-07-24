@@ -54,6 +54,7 @@ export class PropertyRoute implements Routes {
       this.property.searchProperties,
     );
     this.router.get(`${this.path}/:id(\\d+)`, this.property.getPropertyById);
+    this.router.get(`${this.path}/suggestions/:city`, validateCityParam, this.property.autoCompleteLocations);
     this.router.get(
       `${this.path}/count/:city`,
       validateCityParam,

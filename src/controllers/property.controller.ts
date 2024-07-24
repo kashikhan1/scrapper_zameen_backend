@@ -181,7 +181,7 @@ export class PropertyController {
   public autoCompleteLocations = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { query = '' } = req.query as { query: string };
-      const autoCompleteLocations = await this.property.autoCompleteLocation(query);
+      const autoCompleteLocations = await this.property.autoCompleteLocation(query, req.params.city);
       res.status(200).json({ data: autoCompleteLocations, message: 'auto-complete-locations' });
     } catch (error) {
       next(error);

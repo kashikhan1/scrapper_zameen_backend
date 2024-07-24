@@ -226,9 +226,9 @@ export class PropertyService {
     };
   }
 
-  public async autoCompleteLocation(search: string) {
+  public async autoCompleteLocation(search: string, city: string) {
     const locationResponse = await Location.findAll({
-      where: search ? { name: { [Op.iLike]: `%${search}%` } } : {},
+      where: { [Op.and]: [...(search && [{ name: { [Op.iLike]: `%${search}%` } }]), ...(city && [{ name: { [Op.iLike]: `%${city}%` } }])] },
       attributes: ['name'],
       limit: 10,
       raw: true,
