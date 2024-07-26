@@ -24,37 +24,37 @@ describe('Property', () => {
     const route = new PropertyRoute();
     route.property.property = propertyServiceMock;
     app = new App([route]).getServer();
-    (getPropertyTypes as jest.Mock).mockResolvedValue(['House', 'Apartment']);
-    (getPropertyPurpose as jest.Mock).mockResolvedValue(['FOR RENT', 'FOR SALE']);
+    (getPropertyTypes as jest.Mock).mockResolvedValue(['house', 'apartment']);
+    (getPropertyPurpose as jest.Mock).mockResolvedValue(['for_rent', 'for_sale']);
   });
   describe('GET /property', () => {
     it('should retrieve properties with default pagination and sorting', async () => {
       propertyServiceMock.findAllProperties.mockResolvedValue({
-        total_count: 2,
-        properties: [
+        count: 2,
+        rows: [
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 95000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '20 Marla',
-          },
+            area: 450,
+          } as any,
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 9000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '5 Marla',
-          },
+            area: 490,
+          } as any,
         ],
       });
-      const response = await request(app).get('/property').query({ purpose: 'FOR SALE' });
+      const response = await request(app).get('/property').query({ purpose: 'for_sale' });
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('message', 'findAll');
@@ -66,31 +66,31 @@ describe('Property', () => {
 
     it('should retrieve properties with custom pagination', async () => {
       propertyServiceMock.findAllProperties.mockResolvedValue({
-        total_count: 2,
-        properties: [
+        count: 2,
+        rows: [
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 95000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '20 Marla',
-          },
+            area: 450,
+          } as any,
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 9000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '5 Marla',
-          },
+            area: 490,
+          } as any,
         ],
       });
-      const response = await request(app).get('/property?page_size=5&page_number=2').query({ purpose: 'FOR SALE' });
+      const response = await request(app).get('/property?page_size=5&page_number=2').query({ purpose: 'for_sale' });
       expect(response.status).toBe(200);
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
@@ -100,10 +100,10 @@ describe('Property', () => {
 
     it('should retrieve properties sorted by price in descending order', async () => {
       propertyServiceMock.findAllProperties.mockResolvedValue({
-        properties: [{ price: 300000 }, { price: 200000 }, { price: 100000 }],
-        total_count: 3,
+        rows: [{ price: 300000 } as any, { price: 200000 } as any, { price: 100000 } as any],
+        count: 3,
       });
-      const response = await request(app).get('/property?sort_by=price&sort_order=DESC').query({ purpose: 'FOR SALE' });
+      const response = await request(app).get('/property?sort_by=price&sort_order=DESC').query({ purpose: 'for_sale' });
       expect(response.status).toBe(200);
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
@@ -124,7 +124,7 @@ describe('Property', () => {
     });
     it('Should return error', async () => {
       propertyServiceMock.findAllProperties.mockRejectedValue('Error');
-      const response = await request(app).get('/property').query({ purpose: 'FOR SALE' });
+      const response = await request(app).get('/property').query({ purpose: 'for_sale' });
       expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('message');
     });
@@ -137,7 +137,7 @@ describe('Property', () => {
         'Commercial Plot': 2768,
         Factory: 558,
       });
-      const response = await request(app).get('/property/count?purpose=FOR SALE');
+      const response = await request(app).get('/property/count?purpose=for_sale');
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
       expect(response.body.data).toBeInstanceOf(Object);
@@ -150,7 +150,7 @@ describe('Property', () => {
         'Commercial Plot': 2768,
         Factory: 558,
       });
-      const response = await request(app).get('/property/count/islamabad?purpose=FOR SALE');
+      const response = await request(app).get('/property/count/islamabad?purpose=for_sale');
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
       expect(response.body.data).toBeInstanceOf(Object);
@@ -158,7 +158,7 @@ describe('Property', () => {
     });
     it('Should return error', async () => {
       propertyServiceMock.getPropertiesCountMap.mockRejectedValue('Error');
-      const response = await request(app).get('/property/count').query({ purpose: 'FOR SALE' });
+      const response = await request(app).get('/property/count').query({ purpose: 'for_sale' });
       expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('message');
     });
@@ -194,33 +194,33 @@ describe('Property', () => {
   describe('GET /property/:city', () => {
     it('should retrieve properties in a specific city with default pagination and sorting', async () => {
       propertyServiceMock.findAllProperties.mockResolvedValue({
-        total_count: 2,
-        properties: [
+        count: 2,
+        rows: [
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 95000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '20 Marla',
+            area: 450,
             location: 'Islamabad',
-          },
+          } as any,
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 9000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '5 Marla',
+            area: 350,
             location: 'Islamabad',
-          },
+          } as any,
         ],
       });
-      const response = await request(app).get('/property/islamabad?purpose=FOR SALE');
+      const response = await request(app).get('/property/islamabad?purpose=for_sale');
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('message', 'findAll');
@@ -235,33 +235,33 @@ describe('Property', () => {
 
     it('should retrieve properties in a specific city with custom pagination', async () => {
       propertyServiceMock.findAllProperties.mockResolvedValue({
-        total_count: 2,
-        properties: [
+        count: 2,
+        rows: [
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 95000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '20 Marla',
+            area: 450,
             location: 'Islamabad',
-          },
+          } as any,
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 9000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '5 Marla',
+            area: 350,
             location: 'Islamabad',
-          },
+          } as any,
         ],
       });
-      const response = await request(app).get('/property/islamabad?page_size=5&page_number=2&purpose=FOR SALE');
+      const response = await request(app).get('/property/islamabad?page_size=5&page_number=2&purpose=for_sale');
       expect(response.status).toBe(200);
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
@@ -274,10 +274,10 @@ describe('Property', () => {
 
     it('should retrieve properties in a specific city sorted by price in descending order', async () => {
       propertyServiceMock.findAllProperties.mockResolvedValue({
-        properties: [{ price: 300000 }, { price: 200000 }, { price: 100000 }],
-        total_count: 3,
+        rows: [{ price: 300000 } as any, { price: 200000 } as any, { price: 100000 } as any],
+        count: 3,
       });
-      const response = await request(app).get('/property/islamabad?sort_by=price&sort_order=DESC&purpose=FOR SALE');
+      const response = await request(app).get('/property/islamabad?sort_by=price&sort_order=DESC&purpose=for_sale');
       expect(response.status).toBe(200);
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
@@ -293,7 +293,7 @@ describe('Property', () => {
     });
     it('Should return error', async () => {
       propertyServiceMock.findAllProperties.mockRejectedValue('Error');
-      const response = await request(app).get('/property/islamabad').query({ purpose: 'FOR SALE' });
+      const response = await request(app).get('/property/islamabad').query({ purpose: 'for_sale' });
       expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('message');
     });
@@ -301,33 +301,33 @@ describe('Property', () => {
   describe('GET /property/search', () => {
     it('should retrieve properties with default pagination and sorting', async () => {
       propertyServiceMock.searchProperties.mockResolvedValue({
-        total_count: 2,
-        properties: [
+        count: 2,
+        rows: [
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 95000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '20 Marla',
+            area: 450,
             location: 'Islamabad',
-          },
+          } as any,
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 9000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '5 Marla',
+            area: 350,
             location: 'Islamabad',
-          },
+          } as any,
         ],
       });
-      const response = await request(app).get('/property/search?purpose=FOR SALE');
+      const response = await request(app).get('/property/search?purpose=for_sale');
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('message', 'search-properties');
@@ -339,33 +339,33 @@ describe('Property', () => {
 
     it('should retrieve properties with custom pagination', async () => {
       propertyServiceMock.searchProperties.mockResolvedValue({
-        total_count: 2,
-        properties: [
+        count: 2,
+        rows: [
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 95000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '20 Marla',
+            area: 450,
             location: 'Islamabad',
-          },
+          } as any,
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 9000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '5 Marla',
+            area: 350,
             location: 'Islamabad',
-          },
+          } as any,
         ],
       });
-      const response = await request(app).get('/property/search?page_size=5&page_number=2&purpose=FOR SALE');
+      const response = await request(app).get('/property/search?page_size=5&page_number=2&purpose=for_sale');
       expect(response.status).toBe(200);
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
@@ -375,10 +375,10 @@ describe('Property', () => {
 
     it('should retrieve properties sorted by price in descending order', async () => {
       propertyServiceMock.findAllProperties.mockResolvedValue({
-        properties: [{ price: 300000 }, { price: 200000 }, { price: 100000 }],
-        total_count: 3,
+        rows: [{ price: 300000 } as any, { price: 200000 } as any, { price: 100000 } as any],
+        count: 3,
       });
-      const response = await request(app).get('/property/search?sort_by=price&sort_order=DESC&purpose=FOR SALE');
+      const response = await request(app).get('/property/search?sort_by=price&sort_order=DESC&purpose=for_sale');
       expect(response.status).toBe(200);
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
@@ -404,36 +404,36 @@ describe('Property', () => {
     });
     it('should search', async () => {
       propertyServiceMock.searchProperties.mockResolvedValue({
-        total_count: 2,
-        properties: [
+        count: 2,
+        rows: [
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 95000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '20 Marla',
+            area: 450,
             location: 'Islamabad',
-          },
+          } as any,
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 9000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '5 Marla',
+            area: 350,
             location: 'Islamabad',
-          },
+          } as any,
         ],
       });
       const responses = await Promise.all([
-        request(app).get('/property/search?query=islamabad&purpose=FOR SALE'),
-        request(app).get('/property/search?query=123&purpose=FOR SALE'),
-        request(app).get('/property/search?query=abc&purpose=FOR SALE'),
+        request(app).get('/property/search?query=islamabad&purpose=for_sale'),
+        request(app).get('/property/search?query=123&purpose=for_sale'),
+        request(app).get('/property/search?query=abc&purpose=for_sale'),
       ]);
       responses.forEach(res => {
         expect(res.status).toBe(200);
@@ -484,7 +484,7 @@ describe('Property', () => {
     });
     it('Should return error', async () => {
       propertyServiceMock.searchProperties.mockRejectedValue('Error');
-      const response = await request(app).get('/property/search?query=islamabad').query({ purpose: 'FOR SALE' });
+      const response = await request(app).get('/property/search?query=islamabad').query({ purpose: 'for_sale' });
       expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('message');
     });
@@ -507,33 +507,33 @@ describe('Property', () => {
   describe('GET /property/featured', () => {
     it('Should return featured properties', async () => {
       propertyServiceMock.searchProperties.mockResolvedValue({
-        total_count: 2,
-        properties: [
+        count: 2,
+        rows: [
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 95000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '20 Marla',
+            area: 450,
             location: 'Islamabad',
-          },
+          } as any,
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 9000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '5 Marla',
+            area: 350,
             location: 'Islamabad',
-          },
+          } as any,
         ],
       });
-      const response = await request(app).get('/property/featured?purpose=FOR SALE');
+      const response = await request(app).get('/property/featured?purpose=for_sale');
       expect(response.status).toBe(200);
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
@@ -542,7 +542,7 @@ describe('Property', () => {
     });
     it('Should return error', async () => {
       propertyServiceMock.searchProperties.mockRejectedValue('Error');
-      const response = await request(app).get('/property/featured').query({ purpose: 'FOR SALE' });
+      const response = await request(app).get('/property/featured').query({ purpose: 'for_sale' });
       expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('message');
     });
@@ -563,33 +563,33 @@ describe('Property', () => {
         },
       ]);
       propertyServiceMock.searchProperties.mockResolvedValue({
-        total_count: 2,
-        properties: [
+        count: 2,
+        rows: [
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 95000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '20 Marla',
+            area: 450,
             location: 'Islamabad',
-          },
+          } as any,
           {
             id: 1,
-            desc: 'description',
+            description: 'description',
             header: 'Header',
-            type: 'House',
+            type: 'house',
             price: 9000000,
             cover_photo_url: 'cover_photo_url.jpeg',
             available: true,
-            area: '5 Marla',
+            area: 350,
             location: 'Islamabad',
-          },
+          } as any,
         ],
       });
-      const response = await request(app).get('/property/similar?id=1&purpose=FOR SALE');
+      const response = await request(app).get('/property/similar?id=1&purpose=for_sale');
       expect(response.status).toBe(200);
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
@@ -598,7 +598,7 @@ describe('Property', () => {
     });
     it('Should return error', async () => {
       propertyServiceMock.searchProperties.mockRejectedValue(new Error('This should not be done!'));
-      const response = await request(app).get('/property/similar?id=1').query({ purpose: 'FOR SALE' });
+      const response = await request(app).get('/property/similar?id=1').query({ purpose: 'for_sale' });
       expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('message');
     });
