@@ -1,4 +1,5 @@
 import { SORT_COLUMNS, SORT_ORDER } from '@/types';
+import { isInvalidNumber } from '@/utils/helpers';
 import { Request, Response, NextFunction } from 'express';
 
 // Middleware to validate page_size and page_number
@@ -9,19 +10,11 @@ export const validatePaginationParamsMiddleware = (req: Request, res: Response, 
   if (req.query.page_number == null) {
     req.query.page_number = '1';
   }
-  const { page_size, page_number } = req.query;
-  if (
-    page_size !== undefined &&
-    page_number !== undefined &&
-    !isNaN(Number(page_size)) &&
-    !isNaN(Number(page_number)) &&
-    Number(page_number) >= 0 &&
-    Number(page_size) >= 0
-  ) {
-    next();
-  } else {
-    res.status(400).json({ message: 'Invalid pagination parameters. Both page_size and page_number must be valid numbers.' });
+  const { page_size, page_number } = req.query as { page_size: string; page_number: string };
+  if (isInvalidNumber(page_number) || isInvalidNumber(page_size)) {
+    return res.status(400).json({ message: 'Invalid pagination parameters. Both page_size and page_number must be valid numbers.' });
   }
+  next();
 };
 
 export const validateSortParamsMiddleware = (req: Request, res: Response, next: NextFunction) => {

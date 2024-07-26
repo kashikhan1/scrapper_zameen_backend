@@ -4,13 +4,14 @@ import { mock, MockProxy } from 'jest-mock-extended';
 import { App } from '@/app';
 import { PropertyRoute } from '@routes/property.route';
 import { PropertyService } from '@/services/property.service';
-import { getPropertyTypes, getPropertyPurpose } from '@/utils/helpers';
+import { getPropertyTypes, getPropertyPurpose, isInvalidNumber } from '@/utils/helpers';
 import { AVAILABLE_CITIES } from '@/types';
 
 jest.mock('@/services/property.service');
 jest.mock('@/utils/helpers', () => ({
   getPropertyTypes: jest.fn(),
   getPropertyPurpose: jest.fn(),
+  isInvalidNumber: jest.fn(),
 }));
 const propertyServiceMock: MockProxy<PropertyService> = mock<PropertyService>();
 
@@ -29,6 +30,7 @@ describe('Property', () => {
   });
   describe('GET /property', () => {
     it('should retrieve properties with default pagination and sorting', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(false);
       propertyServiceMock.findAllProperties.mockResolvedValue({
         count: 2,
         rows: [
@@ -65,6 +67,7 @@ describe('Property', () => {
     });
 
     it('should retrieve properties with custom pagination', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(false);
       propertyServiceMock.findAllProperties.mockResolvedValue({
         count: 2,
         rows: [
@@ -99,6 +102,7 @@ describe('Property', () => {
     });
 
     it('should retrieve properties sorted by price in descending order', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(false);
       propertyServiceMock.findAllProperties.mockResolvedValue({
         rows: [{ price: 300000 } as any, { price: 200000 } as any, { price: 100000 } as any],
         count: 3,
@@ -113,11 +117,13 @@ describe('Property', () => {
       expect(prices).toEqual([...prices].sort((a, b) => b - a));
     });
     it('should return 400 for invalid pagination parameters', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(true);
       const response = await request(app).get('/property?page_size=-1&page_number=0');
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
     });
     it('should return 400 for invalid sorting parameters', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(false);
       const response = await request(app).get('/property?sort_by=unknown_field&sort_order=DESC');
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
@@ -131,6 +137,7 @@ describe('Property', () => {
   });
   describe('GET /property/count', () => {
     it('should retrieve the total count of properties', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(false);
       propertyServiceMock.getPropertiesCountMap.mockResolvedValue({
         'Agricultural Land': 76,
         Building: 2618,
@@ -144,6 +151,7 @@ describe('Property', () => {
       expect(response.body).toHaveProperty('message');
     });
     it('should retrieve the total count of properties', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(false);
       propertyServiceMock.getPropertiesCountMap.mockResolvedValue({
         'Agricultural Land': 76,
         Building: 2618,
@@ -157,6 +165,7 @@ describe('Property', () => {
       expect(response.body).toHaveProperty('message');
     });
     it('Should return error', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(false);
       propertyServiceMock.getPropertiesCountMap.mockRejectedValue('Error');
       const response = await request(app).get('/property/count').query({ purpose: 'for_sale' });
       expect(response.status).toBe(500);
@@ -300,6 +309,7 @@ describe('Property', () => {
   });
   describe('GET /property/search', () => {
     it('should retrieve properties with default pagination and sorting', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(false);
       propertyServiceMock.searchProperties.mockResolvedValue({
         count: 2,
         rows: [
@@ -338,6 +348,7 @@ describe('Property', () => {
     });
 
     it('should retrieve properties with custom pagination', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(false);
       propertyServiceMock.searchProperties.mockResolvedValue({
         count: 2,
         rows: [
@@ -374,6 +385,7 @@ describe('Property', () => {
     });
 
     it('should retrieve properties sorted by price in descending order', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(false);
       propertyServiceMock.findAllProperties.mockResolvedValue({
         rows: [{ price: 300000 } as any, { price: 200000 } as any, { price: 100000 } as any],
         count: 3,
@@ -388,6 +400,7 @@ describe('Property', () => {
       expect(prices).toEqual([...prices].sort((a, b) => b - a));
     });
     it('should return 400 for invalid pagination parameters', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(true);
       const response = await request(app).get('/property/search?page_size=-1&page_number=0');
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
@@ -403,6 +416,7 @@ describe('Property', () => {
       expect(response.body).toHaveProperty('message');
     });
     it('should search', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(false);
       propertyServiceMock.searchProperties.mockResolvedValue({
         count: 2,
         rows: [
@@ -443,26 +457,31 @@ describe('Property', () => {
       });
     });
     it('should return 400 for invalid price_min parameter', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(true);
       const response = await request(app).get('/property/search?price_min=-1');
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
     });
     it('should return 400 for invalid price_max parameter', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(true);
       const response = await request(app).get('/property/search?price_max=-1');
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
     });
     it('should return 400 for invalid area_min parameter', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(true);
       const response = await request(app).get('/property/search?area_min=-1');
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
     });
     it('should return 400 for invalid area_max parameter', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(true);
       const response = await request(app).get('/property/search?area_max=-1');
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
     });
     it('should return 400 for invalid bedrooms parameter', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(true);
       const response = await request(app).get('/property/search?bedrooms=1,a');
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
@@ -483,6 +502,7 @@ describe('Property', () => {
       expect(response.body).toHaveProperty('message');
     });
     it('Should return error', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(false);
       propertyServiceMock.searchProperties.mockRejectedValue('Error');
       const response = await request(app).get('/property/search?query=islamabad').query({ purpose: 'for_sale' });
       expect(response.status).toBe(500);
@@ -506,6 +526,7 @@ describe('Property', () => {
   });
   describe('GET /property/featured', () => {
     it('Should return featured properties', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(false);
       propertyServiceMock.searchProperties.mockResolvedValue({
         count: 2,
         rows: [
@@ -541,6 +562,7 @@ describe('Property', () => {
       expect(response.body.data).toHaveProperty('total_count');
     });
     it('Should return error', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(false);
       propertyServiceMock.searchProperties.mockRejectedValue('Error');
       const response = await request(app).get('/property/featured').query({ purpose: 'for_sale' });
       expect(response.status).toBe(500);
@@ -549,6 +571,7 @@ describe('Property', () => {
   });
   describe('GET /property/similar', () => {
     it('Should return featured properties', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(false);
       propertyServiceMock.findPropertyById.mockResolvedValue([
         {
           id: 1,
@@ -597,6 +620,7 @@ describe('Property', () => {
       expect(response.body.data).toHaveProperty('total_count');
     });
     it('Should return error', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(false);
       propertyServiceMock.searchProperties.mockRejectedValue(new Error('This should not be done!'));
       const response = await request(app).get('/property/similar?id=1').query({ purpose: 'for_sale' });
       expect(response.status).toBe(500);

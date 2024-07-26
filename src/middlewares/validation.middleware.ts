@@ -3,7 +3,7 @@ import { validateOrReject, ValidationError } from 'class-validator';
 import { NextFunction, Request, Response } from 'express';
 import { HttpException } from '@exceptions/HttpException';
 import { AVAILABLE_CITIES } from '@/types';
-import { getPropertyPurpose, getPropertyTypes } from '@/utils/helpers';
+import { getPropertyPurpose, getPropertyTypes, isInvalidNumber } from '@/utils/helpers';
 import { PropertyPurposeType, PropertyType } from '@/models/models';
 
 /**
@@ -83,7 +83,6 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
   if (req.query.end_date == null) {
     req.query.end_date = '';
   }
-  const isInvalidNumber = (value: string): boolean => isNaN(Number(value)) || Number(value) < 0;
 
   const { property_type, area_min, area_max, price_min, price_max, bedrooms, start_date, end_date } = req.query as {
     property_type: string;
