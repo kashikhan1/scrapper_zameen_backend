@@ -184,18 +184,18 @@ export class PropertyService {
     });
     return this.getCountMap(whereClause);
   }
-  public async getLocationId(location: string): Promise<number | null> {
+  public async getLocationId(location: string): Promise<number[]> {
     if (!location) return null;
 
-    const locationResponse = await Location.findOne({
+    const locationResponse = await Location.findAll({
       where: {
         name: {
-          [Op.iLike]: `%${location}%`,
+          [Op.in]: location.split('|').map(l => l.trim()),
         },
       },
       attributes: ['id'],
     });
-    return locationResponse?.id ?? null;
+    return locationResponse.map(({ id }) => id);
   }
 
   public async getWhereClause({
@@ -213,12 +213,12 @@ export class PropertyService {
   }: IGetWhereClauseProps): Promise<WhereOptions<InferAttributes<PropertiesModel>>> {
     const cityIdPromise = this.findCityId(city);
     const locationIdPromise = this.getLocationId(search);
-    const [cityId, locationId] = await Promise.all([cityIdPromise, locationIdPromise]);
+    const [cityId, locationIds] = await Promise.all([cityIdPromise, locationIdPromise]);
     return {
       purpose,
       price: { [Op.gt]: 0 },
       ...(property_type && { type: property_type }),
-      ...(search && { location_id: locationId }),
+      ...(search && { location_id: { [Op.in]: locationIds } }),
       ...(city && { city_id: cityId }),
       ...((area_min || area_max) && { area: { ...(area_min && { [Op.gte]: area_min }), ...(area_max && { [Op.lt]: area_max }) } }),
       ...((price_min || price_max) && { price: { ...(price_min && { [Op.gte]: price_min }), ...(price_max && { [Op.lt]: price_max }) } }),
