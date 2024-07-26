@@ -17,7 +17,7 @@ export class PropertyController {
   public getProperties = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { page_size, page_number, sort_by, sort_order, purpose } = req.query as unknown as IGetPropertiesQueryParams;
-      const findAllPropertiesData = await this.property.findAllProperties({
+      const { rows: properties, count: total_count } = await this.property.findAllProperties({
         city: req.params.city,
         page_number: Number(page_number),
         page_size: Number(page_size),
@@ -25,7 +25,7 @@ export class PropertyController {
         sort_order,
         purpose,
       });
-      res.status(200).json({ data: { ...findAllPropertiesData, page_number, page_size }, message: 'findAll' });
+      res.status(200).json({ data: { properties, total_count, page_number, page_size }, message: 'findAll' });
     } catch (error) {
       next(error);
     }
@@ -87,7 +87,7 @@ export class PropertyController {
     } = req.query as unknown as ISearchPropertiesQueryParams;
 
     try {
-      const properties = await this.property.searchProperties({
+      const { rows: properties, count: total_count } = await this.property.searchProperties({
         city: req.params.city,
         search: query,
         page_number: Number(page_number),
@@ -106,7 +106,7 @@ export class PropertyController {
       });
 
       res.json({
-        data: { ...properties, page_number, page_size },
+        data: { properties, total_count, page_number, page_size },
         message: 'search-properties',
       });
     } catch (error) {
@@ -116,14 +116,14 @@ export class PropertyController {
   public getFeaturedProperties = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { page_number, page_size, purpose } = req.query as unknown as IGetFeaturedPropertiesQueryParams;
-      const featuredProperties = await this.property.searchProperties({
+      const { rows: properties, count: total_count } = await this.property.searchProperties({
         page_number: Number(page_number),
         page_size: Number(page_size),
         sort_by: SORT_COLUMNS.PRICE,
         price_min: FEATURED_PROPERTY_PRICE_THRESHOLD,
         purpose,
       });
-      res.status(200).json({ data: { ...featuredProperties, page_number, page_size }, message: 'featured-properties' });
+      res.status(200).json({ data: { properties, total_count, page_number, page_size }, message: 'featured-properties' });
     } catch (error) {
       next(error);
     }
@@ -132,7 +132,7 @@ export class PropertyController {
     try {
       const { page_number, page_size, id, purpose } = req.query as unknown as IGetSimilarPropertiesQueryParams;
       const property = await this.property.findPropertyById(Number(id));
-      const similarProperties = await this.property.searchProperties({
+      const { rows: properties, count: total_count } = await this.property.searchProperties({
         page_number: Number(page_number),
         page_size: Number(page_size),
         sort_by: SORT_COLUMNS.ID,
@@ -140,7 +140,7 @@ export class PropertyController {
         property_type: property[0].type,
         purpose,
       });
-      res.status(200).json({ data: { ...similarProperties, page_number, page_size }, message: 'similar-properties' });
+      res.status(200).json({ data: { properties, total_count, page_number, page_size }, message: 'similar-properties' });
     } catch (error) {
       next(error);
     }
@@ -149,7 +149,7 @@ export class PropertyController {
     try {
       const { query = '' } = req.query as { query: string };
       const autoCompleteLocations = await this.property.autoCompleteLocation(query, req.params.city);
-      res.status(200).json({ data: autoCompleteLocations, message: 'auto-complete-locations' });
+      res.status(200).json({ data: autoCompleteLocations.map(location => location.name), message: 'auto-complete-locations' });
     } catch (error) {
       next(error);
     }

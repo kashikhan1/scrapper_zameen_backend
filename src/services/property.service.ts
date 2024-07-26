@@ -86,10 +86,13 @@ export class PropertyService {
     sort_by = SORT_COLUMNS.ID,
     sort_order = SORT_ORDER.ASC,
     purpose,
-  }: IFindAllPropertiesProps): Promise<any> {
+  }: IFindAllPropertiesProps): Promise<{
+    rows: PropertiesModel[];
+    count: number;
+  }> {
     this.validateSortParams(sort_by, sort_order);
     const cityId = await this.findCityId(city);
-    const { count: totalCount, rows: properties } = await Property.findAndCountAll({
+    return Property.findAndCountAll({
       where: {
         price: {
           [Op.gt]: 0,
@@ -114,8 +117,6 @@ export class PropertyService {
       raw: true,
       nest: false,
     });
-
-    return { properties, total_count: totalCount };
   }
   public async findPropertyById(propertyId: number) {
     const property = await Property.findByPk(propertyId, {
@@ -227,7 +228,7 @@ export class PropertyService {
   }
 
   public async autoCompleteLocation(search: string, city: string) {
-    const locationResponse = await Location.findAll({
+    return Location.findAll({
       where:
         search || city
           ? {
@@ -238,7 +239,6 @@ export class PropertyService {
       limit: 10,
       raw: true,
     });
-    return locationResponse.map(location => location.name);
   }
 
   public async searchProperties({
@@ -257,7 +257,10 @@ export class PropertyService {
     start_date,
     end_date,
     purpose,
-  }: ISearchPropertiesProps): Promise<any> {
+  }: ISearchPropertiesProps): Promise<{
+    rows: PropertiesModel[];
+    count: number;
+  }> {
     this.validateSortParams(sort_by, sort_order);
 
     const whereClause = await this.getWhereClause({
@@ -274,7 +277,7 @@ export class PropertyService {
       search,
     });
 
-    const findAndCountAllPromise = Property.findAndCountAll({
+    return Property.findAndCountAll({
       where: whereClause,
       order: [[sort_by, sort_order]],
       offset: (page_number - 1) * page_size,
@@ -293,10 +296,5 @@ export class PropertyService {
       raw: true,
       nest: false,
     });
-    const [{ count: totalCount, rows: properties }] = await Promise.all([findAndCountAllPromise]);
-    return {
-      properties,
-      total_count: totalCount,
-    };
   }
 }
