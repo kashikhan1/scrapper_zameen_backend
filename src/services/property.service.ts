@@ -52,7 +52,7 @@ export class PropertyService {
     ];
   }
 
-  private async mapPropertiesDetails(properties: object[]) {
+  private async mapPropertiesDetails(properties: PropertiesModel[]) {
     const promises = await Promise.allSettled(
       properties.map(async (property: any) => {
         const externalId = property?.url?.split('-').slice(-3)[0];

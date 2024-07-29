@@ -1,49 +1,80 @@
 import { z } from 'zod';
 
-export const FeatureSchema = z.object({
-  category: z.string(),
-  features: z.array(z.string()),
+const { object, string, array, number, boolean, date } = z;
+
+const PropertyPurposeTypeEnum = z.enum(['for_sale', 'for_rent']);
+const PropertyTypeEnum = z.enum([
+  'agricultural_land',
+  'building',
+  'commercial_plot',
+  'factory',
+  'farm_house',
+  'flat',
+  'house',
+  'industrial_land',
+  'office',
+  'other',
+  'penthouse',
+  'plot_file',
+  'plot_form',
+  'residential_plot',
+  'room',
+  'shop',
+  'lower_portion',
+  'upper_portion',
+  'warehouse',
+]);
+
+export const FeatureSchema = object({
+  category: string(),
+  features: array(string()),
 });
 
-export const PropertySchema = z.object({
-  id: z.number(),
-  desc: z.string(),
-  header: z.string(),
-  type: z.string(),
-  price: z.number(),
-  location: z.string(),
-  bath: z.string(),
-  area: z.string(),
-  purpose: z.string(),
-  bedroom: z.string(),
-  added: z.number(),
-  initial_amount: z.string(),
-  monthly_installment: z.string(),
-  remaining_installments: z.string(),
-  url: z.string().url(),
-  created_at: z.string(),
-  updated_at: z.string(),
-  cover_photo_url: z.string().url(),
-  available: z.boolean(),
-  features: z.array(FeatureSchema),
+export const PropertySchema = object({
+  id: number().optional(),
+  description: string(),
+  header: string(),
+  type: PropertyTypeEnum,
+  price: number(),
+  location_id: number(),
+  bath: number(),
+  area: number(),
+  purpose: PropertyPurposeTypeEnum,
+  bedroom: number(),
+  added: date(),
+  initial_amount: string(),
+  monthly_installment: string(),
+  remaining_installments: string(),
+  url: string().url(),
+  created_at: date(),
+  updated_at: date(),
+  cover_photo_url: string().url(),
+  available: boolean(),
+  features: array(FeatureSchema),
+  city_id: number(),
 });
 
-export const PropertyResponseSchema = z.object({
-  id: z.number(),
-  desc: z.string(),
-  header: z.string(),
-  type: z.string(),
-  price: z.number(),
-  cover_photo_url: z.string().url(),
-  available: z.boolean(),
-  area: z.string(),
-  location: z.string(),
+export const PropertyResponseSchema = object({
+  id: number(),
+  description: string(),
+  header: string(),
+  type: PropertyTypeEnum,
+  price: number(),
+  cover_photo_url: string().url(),
+  available: boolean(),
+  area: number(),
+  added: date(),
+  bedroom: number(),
+  bath: number(),
+  location: string(),
+  city: string(),
 });
 
 export const PropertyDetailResponseSchema = PropertySchema.extend({
-  popularity_trends: z.object({
-    trends: z.object({}),
+  popularity_trends: object({
+    trends: object({}),
   }),
-  external_id: z.string(),
-  contact: z.object({}),
+  area_trends: object({}),
+  external_id: string(),
+  contact: object({}),
 });
