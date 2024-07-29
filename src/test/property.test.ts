@@ -260,7 +260,7 @@ describe('Property', () => {
   describe('GET /property/search', () => {
     it('should retrieve properties with default pagination and sorting', async () => {
       mockSearchProperties();
-      const response = await request(app).get('/property/search?purpose=for_sale');
+      const response = await request(app).get('/property/search');
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('message', 'search-properties');
@@ -290,6 +290,17 @@ describe('Property', () => {
       expect(response.body.data).toHaveProperty('total_count');
       const prices = response.body.data.properties.map(property => Number(property.price));
       expect(prices).toEqual([...prices].sort((a, b) => b - a));
+    });
+    it('should return 400 for invalid purpose parameter', async () => {
+      const response = await request(app).get('/property/search?purpose=invalid');
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message');
+    });
+    it('should return error when get property purpose rejects', async () => {
+      (getPropertyPurpose as jest.Mock).mockRejectedValueOnce('Error occured!');
+      const response = await request(app).get('/property/search?purpose=for_sale');
+      expect(response.status).toBe(500);
+      expect(response.body).toHaveProperty('message');
     });
     it('should return 400 for invalid pagination parameters', async () => {
       const response = await request(app).get('/property/search?page_size=-1&page_number=0');
