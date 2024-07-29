@@ -429,4 +429,20 @@ describe('Property', () => {
       expect(response.body).toHaveProperty('message');
     });
   });
+  describe('GET /property/suggestions', () => {
+    it('Should return a list of suggestions', async () => {
+      propertyServiceMock.autoCompleteLocation.mockResolvedValue([{ name: 'test1' } as any, { name: 'test2' } as any]);
+      const response = await request(app).get('/property/suggestions');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('message', 'auto-complete-locations');
+      expect(response.body).toHaveProperty('data');
+      expect(response.body.data).toEqual(['test1', 'test2']);
+    });
+    it('Should return error', async () => {
+      propertyServiceMock.autoCompleteLocation.mockRejectedValue('Error occured!');
+      const response = await request(app).get('/property/suggestions');
+      expect(response.status).toBe(500);
+      expect(response.body).toHaveProperty('message');
+    });
+  });
 });
