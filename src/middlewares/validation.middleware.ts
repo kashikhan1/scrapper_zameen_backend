@@ -95,7 +95,7 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
     start_date: string;
     end_date: string;
   };
-  console.log('price_min: ' + price_min);
+
   switch (true) {
     case isInvalidNumber(price_min):
     case price_max && isInvalidNumber(price_max):
