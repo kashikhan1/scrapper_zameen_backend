@@ -1,5 +1,5 @@
 import { SORT_COLUMNS, SORT_ORDER } from '@/types';
-import { isInvalidNumber } from '@/utils/helpers';
+import { isInvalidNumber } from '@/utils/validation.helpers';
 import { Request, Response, NextFunction } from 'express';
 
 // Middleware to validate page_size and page_number

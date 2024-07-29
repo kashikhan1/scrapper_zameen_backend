@@ -3,7 +3,8 @@ import { validateOrReject, ValidationError } from 'class-validator';
 import { NextFunction, Request, Response } from 'express';
 import { HttpException } from '@exceptions/HttpException';
 import { AVAILABLE_CITIES } from '@/types';
-import { getPropertyPurpose, getPropertyTypes, isInvalidNumber } from '@/utils/helpers';
+import { getPropertyPurpose, getPropertyTypes } from '@/utils/helpers';
+import { isInvalidNumber } from '@/utils/validation.helpers';
 import { PropertyPurposeType, PropertyType } from '@/models/models';
 
 /**
@@ -94,7 +95,7 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
     start_date: string;
     end_date: string;
   };
-
+  console.log('price_min: ' + price_min);
   switch (true) {
     case isInvalidNumber(price_min):
     case price_max && isInvalidNumber(price_max):

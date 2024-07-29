@@ -32,5 +32,3 @@ export const getPropertyPurpose = async () => {
   redis.setRedisValue({ key: cacheKey, value: JSON.stringify(propertyPurpose) });
   return propertyPurpose;
 };
-
-export const isInvalidNumber = (value: string): boolean => isNaN(Number(value)) || Number(value) < 0;
