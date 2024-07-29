@@ -187,11 +187,15 @@ export class PropertyService {
   public async getLocationId(location: string): Promise<number[]> {
     if (!location) return null;
 
+    const locationConditions = location.split('|').map(l => ({
+      name: {
+        [Op.iLike]: `%${l.trim()}%`,
+      },
+    }));
+
     const locationResponse = await Location.findAll({
       where: {
-        name: {
-          [Op.in]: location.split('|').map(l => l.trim()),
-        },
+        [Op.or]: locationConditions,
       },
       attributes: ['id'],
     });
