@@ -100,7 +100,7 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
     case isInvalidNumber(price_min):
     case price_max && isInvalidNumber(price_max):
       return res.status(400).json({ message: 'Invalid price parameters. Both price_min and price_max must be valid numbers.' });
-    case bedrooms && bedrooms.split(',').some(v => isNaN(Number(v))):
+    case bedrooms && bedrooms.split(',').some(isInvalidNumber):
       return res.status(400).json({ message: 'Invalid bedrooms parameter. It must be a valid number.' });
     case isInvalidNumber(area_min):
     case area_max && isInvalidNumber(area_max):
