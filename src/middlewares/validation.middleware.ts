@@ -101,7 +101,7 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
       return res.status(400).json({ message: 'Invalid price parameters. Both price_min and price_max must be valid numbers.' });
     case bedrooms && bedrooms.split(',').some(v => isNaN(Number(v))):
       return res.status(400).json({ message: 'Invalid bedrooms parameter. It must be a valid number.' });
-    case isNaN(Number(area_min)) || Number(area_min) < 0:
+    case isInvalidNumber(area_min):
     case area_max && isInvalidNumber(area_max):
       return res.status(400).json({ message: 'Invalid area parameters. Both area_min and area_max must be valid numbers (in square feet).' });
     case start_date && isNaN(Date.parse(start_date)):
