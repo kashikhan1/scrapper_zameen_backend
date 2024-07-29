@@ -137,6 +137,12 @@ describe('Property', () => {
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
     });
+    it('should return 400 for invalid sorting parameters (sort_order)', async () => {
+      (isInvalidNumber as jest.Mock).mockReturnValue(false);
+      const response = await request(app).get('/property?sort_by=price&sort_order=unknown');
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message');
+    });
     it('Should return error', async () => {
       propertyServiceMock.findAllProperties.mockRejectedValue('Error');
       const response = await request(app).get('/property').query({ purpose: 'for_sale' });
