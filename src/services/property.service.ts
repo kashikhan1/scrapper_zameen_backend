@@ -52,7 +52,7 @@ export class PropertyService {
     ];
   }
 
-  private async mapPropertiesDetails(properties: object[]) {
+  private async mapPropertiesDetails(properties: PropertiesModel[]) {
     const promises = await Promise.allSettled(
       properties.map(async (property: any) => {
         const externalId = property?.url?.split('-').slice(-3)[0];
@@ -86,10 +86,13 @@ export class PropertyService {
     sort_by = SORT_COLUMNS.ID,
     sort_order = SORT_ORDER.ASC,
     purpose,
-  }: IFindAllPropertiesProps): Promise<any> {
+  }: IFindAllPropertiesProps): Promise<{
+    rows: PropertiesModel[];
+    count: number;
+  }> {
     this.validateSortParams(sort_by, sort_order);
     const cityId = await this.findCityId(city);
-    const { count: totalCount, rows: properties } = await Property.findAndCountAll({
+    return Property.findAndCountAll({
       where: {
         price: {
           [Op.gt]: 0,
@@ -114,8 +117,6 @@ export class PropertyService {
       raw: true,
       nest: false,
     });
-
-    return { properties, total_count: totalCount };
   }
   public async findPropertyById(propertyId: number) {
     const property = await Property.findByPk(propertyId, {
@@ -183,18 +184,22 @@ export class PropertyService {
     });
     return this.getCountMap(whereClause);
   }
-  public async getLocationId(location: string): Promise<number | null> {
+  public async getLocationId(location: string): Promise<number[]> {
     if (!location) return null;
 
-    const locationResponse = await Location.findOne({
+    const locationConditions = location.split('|').map(l => ({
+      name: {
+        [Op.iLike]: `%${l.trim()}%`,
+      },
+    }));
+
+    const locationResponse = await Location.findAll({
       where: {
-        name: {
-          [Op.iLike]: `%${location}%`,
-        },
+        [Op.or]: locationConditions,
       },
       attributes: ['id'],
     });
-    return locationResponse?.id ?? null;
+    return locationResponse.map(({ id }) => id);
   }
 
   public async getWhereClause({
@@ -212,12 +217,12 @@ export class PropertyService {
   }: IGetWhereClauseProps): Promise<WhereOptions<InferAttributes<PropertiesModel>>> {
     const cityIdPromise = this.findCityId(city);
     const locationIdPromise = this.getLocationId(search);
-    const [cityId, locationId] = await Promise.all([cityIdPromise, locationIdPromise]);
+    const [cityId, locationIds] = await Promise.all([cityIdPromise, locationIdPromise]);
     return {
       purpose,
       price: { [Op.gt]: 0 },
       ...(property_type && { type: property_type }),
-      ...(search && { location_id: locationId }),
+      ...(search && { location_id: { [Op.in]: locationIds } }),
       ...(city && { city_id: cityId }),
       ...((area_min || area_max) && { area: { ...(area_min && { [Op.gte]: area_min }), ...(area_max && { [Op.lt]: area_max }) } }),
       ...((price_min || price_max) && { price: { ...(price_min && { [Op.gte]: price_min }), ...(price_max && { [Op.lt]: price_max }) } }),
@@ -227,7 +232,7 @@ export class PropertyService {
   }
 
   public async autoCompleteLocation(search: string, city: string) {
-    const locationResponse = await Location.findAll({
+    return Location.findAll({
       where:
         search || city
           ? {
@@ -238,7 +243,6 @@ export class PropertyService {
       limit: 10,
       raw: true,
     });
-    return locationResponse.map(location => location.name);
   }
 
   public async searchProperties({
@@ -257,7 +261,10 @@ export class PropertyService {
     start_date,
     end_date,
     purpose,
-  }: ISearchPropertiesProps): Promise<any> {
+  }: ISearchPropertiesProps): Promise<{
+    rows: PropertiesModel[];
+    count: number;
+  }> {
     this.validateSortParams(sort_by, sort_order);
 
     const whereClause = await this.getWhereClause({
@@ -274,7 +281,7 @@ export class PropertyService {
       search,
     });
 
-    const findAndCountAllPromise = Property.findAndCountAll({
+    return Property.findAndCountAll({
       where: whereClause,
       order: [[sort_by, sort_order]],
       offset: (page_number - 1) * page_size,
@@ -293,10 +300,5 @@ export class PropertyService {
       raw: true,
       nest: false,
     });
-    const [{ count: totalCount, rows: properties }] = await Promise.all([findAndCountAllPromise]);
-    return {
-      properties,
-      total_count: totalCount,
-    };
   }
 }
