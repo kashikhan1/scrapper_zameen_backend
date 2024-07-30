@@ -167,9 +167,9 @@ paths:
       summary: Search for properties
       description: Search for a list of properties with pagination and sorting options.
       parameters:
-        - name: query
+        - name: location_ids
           in: query
-          description: Query to search for.
+          description: Location IDs
           type: string
           default: ''
         - name: page_size
@@ -273,9 +273,9 @@ paths:
       summary: Get total property count
       description: Retrieve the total count of properties.
       parameters:
-        - name: query
+        - name: location_ids
           in: query
-          description: Query to search for.
+          description: Location IDs
           type: string
           default: ''
         - name: area_min
@@ -341,9 +341,9 @@ paths:
           description: Name of the city to count properties for
           required: true
           type: string
-        - name: query
+        - name: location_ids
           in: query
-          description: Query to search for.
+          description: Location IDs
           type: string
           default: ''
         - name: area_min
@@ -618,9 +618,9 @@ paths:
       summary: Search for properties
       description: Search for a list of properties from a specified city with pagination and sorting options.
       parameters:
-        - name: query
+        - name: location_ids
           in: query
-          description: Query to search for.
+          description: Location IDs
           type: string
           default: ''
         - name: city

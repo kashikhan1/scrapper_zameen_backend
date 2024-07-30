@@ -24,7 +24,7 @@ export type IFeature = z.infer<typeof FeatureSchema>;
 
 export interface ISearchPropertiesProps {
   city?: string;
-  search?: string;
+  location_ids?: string;
   page_number: number;
   page_size?: number;
   sort_by?: SORT_COLUMNS;
@@ -42,7 +42,7 @@ export interface ISearchPropertiesProps {
 
 export interface IGetPropertiesCountMapProps {
   city?: string;
-  search?: string;
+  location_ids: string;
   area_min?: string;
   area_max?: string;
   price_min?: string;
@@ -78,7 +78,7 @@ export interface IFindAllPropertiesProps {
 
 export interface IGetWhereClauseProps {
   city?: string;
-  search?: string;
+  location_ids?: string;
   area_min?: string;
   area_max?: string;
   price_min?: string;

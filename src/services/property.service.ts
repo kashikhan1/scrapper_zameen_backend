@@ -134,6 +134,7 @@ export class PropertyService {
         include: [
           [col('Location.name'), 'location'],
           [col('City.name'), 'city'],
+          [col('Location.id'), 'location_id'],
         ],
       },
       raw: true,
@@ -160,7 +161,7 @@ export class PropertyService {
   }
   public async getPropertiesCountMap({
     city,
-    search,
+    location_ids,
     area_min,
     area_max,
     price_min,
@@ -172,7 +173,7 @@ export class PropertyService {
   }: IGetPropertiesCountMapProps) {
     const whereClause = await this.getWhereClause({
       city,
-      search,
+      location_ids,
       area_min,
       area_max,
       price_min,
@@ -204,7 +205,7 @@ export class PropertyService {
 
   public async getWhereClause({
     city,
-    search,
+    location_ids,
     area_min,
     area_max,
     price_min,
@@ -216,13 +217,13 @@ export class PropertyService {
     property_type,
   }: IGetWhereClauseProps): Promise<WhereOptions<InferAttributes<PropertiesModel>>> {
     const cityIdPromise = this.findCityId(city);
-    const locationIdPromise = this.getLocationId(search);
-    const [cityId, locationIds] = await Promise.all([cityIdPromise, locationIdPromise]);
+    const locationIds = location_ids.split(',').map(id => Number(id.trim()));
+    const [cityId] = await Promise.all([cityIdPromise]);
     return {
       purpose,
       price: { [Op.gt]: 0 },
       ...(property_type && { type: property_type }),
-      ...(search && { location_id: { [Op.in]: locationIds } }),
+      ...(location_ids && { location_id: { [Op.in]: locationIds } }),
       ...(city && { city_id: cityId }),
       ...((area_min || area_max) && { area: { ...(area_min && { [Op.gte]: area_min }), ...(area_max && { [Op.lt]: area_max }) } }),
       ...((price_min || price_max) && { price: { ...(price_min && { [Op.gte]: price_min }), ...(price_max && { [Op.lt]: price_max }) } }),
@@ -239,7 +240,7 @@ export class PropertyService {
               [Op.and]: [...(search ? [{ name: { [Op.iLike]: `%${search}%` } }] : []), ...(city ? [{ name: { [Op.iLike]: `%${city}%` } }] : [])],
             }
           : {},
-      attributes: ['name'],
+      attributes: ['id', 'name'],
       limit: 10,
       raw: true,
     });
@@ -247,7 +248,7 @@ export class PropertyService {
 
   public async searchProperties({
     city,
-    search,
+    location_ids,
     page_number,
     page_size = 10,
     sort_by = SORT_COLUMNS.ID,
@@ -278,7 +279,7 @@ export class PropertyService {
       end_date,
       purpose,
       city,
-      search,
+      location_ids,
     });
 
     return Property.findAndCountAll({
