@@ -42,15 +42,16 @@ export const validateCityParam = (req: Request, res: Response, next: NextFunctio
 };
 
 export const validateSearchQueryParamMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  if (req.query.query == null) {
-    req.query.query = '';
+  if (req.query.location_ids == null) {
+    req.query.location_ids = '';
   }
-  const { query } = req.query;
-  if (typeof query !== 'string') {
-    res.status(400).json({ message: 'Invalid query search parameter. It must be a string.' });
-  } else {
-    next();
+  const { location_ids } = req.query as { location_ids: string };
+  const ids = location_ids.split(',').map(id => id.trim());
+
+  if (ids.some(isInvalidNumber)) {
+    return res.status(400).json({ message: 'Invalid location_ids search parameter. It must be a string of numbers separated by comma.' });
   }
+  next();
 };
 
 // add filters to search endpoints => property_type, area_min, area_max, price_min, price_max, bedrooms

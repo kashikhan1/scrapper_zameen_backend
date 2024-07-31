@@ -41,11 +41,11 @@ export class PropertyController {
   };
   public getPropertyCount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { query, area_min, area_max, price_min, price_max, bedrooms, start_date, end_date, purpose } =
+      const { location_ids, area_min, area_max, price_min, price_max, bedrooms, start_date, end_date, purpose } =
         req.query as unknown as IGetPropertyCountQueryParams;
       const propertyCount = await this.property.getPropertiesCountMap({
         city: req.params.city,
-        search: query,
+        location_ids,
         area_min,
         area_max,
         price_min,
@@ -70,7 +70,7 @@ export class PropertyController {
   };
   public searchProperties = async (req: Request, res: Response, next: NextFunction) => {
     const {
-      query,
+      location_ids,
       page_number,
       page_size,
       sort_by,
@@ -89,7 +89,7 @@ export class PropertyController {
     try {
       const { rows: properties, count: total_count } = await this.property.searchProperties({
         city: req.params.city,
-        search: query,
+        location_ids,
         page_number: Number(page_number),
         page_size: Number(page_size),
         sort_by: sort_by as SORT_COLUMNS,
@@ -136,7 +136,7 @@ export class PropertyController {
         page_number: Number(page_number),
         page_size: Number(page_size),
         sort_by: SORT_COLUMNS.ID,
-        search: property[0].location,
+        location_ids: String(property[0].location_id),
         property_type: property[0].type,
         purpose,
       });
@@ -149,7 +149,7 @@ export class PropertyController {
     try {
       const { query = '' } = req.query as { query: string };
       const autoCompleteLocations = await this.property.autoCompleteLocation(query, req.params.city);
-      res.status(200).json({ data: autoCompleteLocations.map(location => location.name), message: 'auto-complete-locations' });
+      res.status(200).json({ data: autoCompleteLocations, message: 'auto-complete-locations' });
     } catch (error) {
       next(error);
     }

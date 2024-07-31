@@ -9,7 +9,7 @@ export interface IGetPropertiesQueryParams {
 }
 
 export interface IGetPropertyCountQueryParams {
-  query: string;
+  location_ids: string;
   area_min: string;
   area_max: string;
   price_min: string;
@@ -21,7 +21,7 @@ export interface IGetPropertyCountQueryParams {
 }
 
 export interface ISearchPropertiesQueryParams {
-  query: string;
+  location_ids: string;
   page_number: string;
   page_size: string;
   sort_by: SORT_COLUMNS;

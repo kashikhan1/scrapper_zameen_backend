@@ -317,12 +317,17 @@ describe('Property', () => {
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('message');
     });
+    it('should return 400 for invalid location_ids parameters', async () => {
+      const response = await request(app).get('/property/search?location_ids=invalid');
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message');
+    });
     it('should search', async () => {
       mockSearchProperties();
       const responses = await Promise.all([
-        request(app).get('/property/search?query=islamabad&purpose=for_sale'),
-        request(app).get('/property/search?query=123&purpose=for_sale'),
-        request(app).get('/property/search?query=abc&purpose=for_sale'),
+        request(app).get('/property/search?location_ids=1,2,3&purpose=for_sale'),
+        request(app).get('/property/search?location_ids=123&purpose=for_sale'),
+        request(app).get('/property/search?location_ids=1&purpose=for_sale'),
       ]);
       responses.forEach(res => {
         expect(res.status).toBe(200);
@@ -373,7 +378,7 @@ describe('Property', () => {
     });
     it('Should return error', async () => {
       propertyServiceMock.searchProperties.mockRejectedValue('Error');
-      const response = await request(app).get('/property/search?query=islamabad').query({ purpose: 'for_sale' });
+      const response = await request(app).get('/property/search?location_ids=1,2,3').query({ purpose: 'for_sale' });
       expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('message');
     });
@@ -447,7 +452,7 @@ describe('Property', () => {
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('message', 'auto-complete-locations');
       expect(response.body).toHaveProperty('data');
-      expect(response.body.data).toEqual(['test1', 'test2']);
+      expect(response.body.data).toEqual([{ name: 'test1' }, { name: 'test2' }]);
     });
     it('Should return error', async () => {
       propertyServiceMock.autoCompleteLocation.mockRejectedValue('Error occured!');
