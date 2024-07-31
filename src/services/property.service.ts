@@ -205,16 +205,16 @@ export class PropertyService {
 
   public async getWhereClause({
     city,
-    location_ids,
+    location_ids = '',
     area_min,
     area_max,
     price_min,
     price_max,
-    bedrooms,
+    bedrooms = '',
     start_date,
     end_date,
     purpose,
-    property_type,
+    property_type = '',
   }: IGetWhereClauseProps): Promise<WhereOptions<InferAttributes<PropertiesModel>>> {
     const cityIdPromise = this.findCityId(city);
     const locationIds = location_ids.split(',').map(id => Number(id.trim()));

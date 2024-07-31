@@ -1,3 +1,4 @@
+import { Response } from 'express';
 import { PROPERTY_TYPE_CATEGORIES } from '@/constants';
 
 export const isInvalidNumber = (value: string): boolean => isNaN(Number(value)) || Number(value) < 0;
@@ -9,3 +10,5 @@ export const PROPERTY_CATEGORY_MAP: { [key in PROPERTY_TYPE_CATEGORIES]: string 
   ),
   [PROPERTY_TYPE_CATEGORIES.COMMERCIAL]: ['shop', 'office', 'warehouse', 'factory', 'building', 'other'].join(','),
 };
+
+export const returnBadRequestError = ({ res, message }: { res: Response; message: string }) => res.status(400).json({ message });
