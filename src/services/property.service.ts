@@ -12,6 +12,7 @@ import {
 } from '@/types';
 import axios, { AxiosResponse } from 'axios';
 import { City, Location, PropertiesModel, Property } from '@/models/models';
+import { splitAndTrimString } from '@/utils';
 
 @Service()
 export class PropertyService {
@@ -217,9 +218,9 @@ export class PropertyService {
     property_type = '',
   }: IGetWhereClauseProps): Promise<WhereOptions<InferAttributes<PropertiesModel>>> {
     const cityIdPromise = this.findCityId(city);
-    const locationIds = location_ids.split(',').map(id => Number(id.trim()));
-    const bedroomsArray = bedrooms.split(',').map(id => Number(id.trim()));
-    const propertyTypesArray = property_type.split(',').map(type => type.trim());
+    const locationIds = splitAndTrimString(location_ids).map(Number);
+    const bedroomsArray = splitAndTrimString(bedrooms).map(Number);
+    const propertyTypesArray = splitAndTrimString(property_type);
     const [cityId] = await Promise.all([cityIdPromise]);
     return {
       purpose,
