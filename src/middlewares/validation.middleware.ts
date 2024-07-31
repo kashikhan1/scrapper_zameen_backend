@@ -4,8 +4,9 @@ import { NextFunction, Request, Response } from 'express';
 import { HttpException } from '@exceptions/HttpException';
 import { AVAILABLE_CITIES } from '@/types';
 import { getPropertyPurpose, getPropertyTypes } from '@/utils/helpers';
-import { isInvalidNumber } from '@/utils/validation.helpers';
+import { isInvalidNumber, PROPERTY_CATEGORY_MAP, returnBadRequestError } from '@/utils/validation.helpers';
 import { PropertyPurposeType, PropertyType } from '@/models/models';
+import { IvalidateSearchFiltersMiddlewareQueryParams } from '@/types/middleware.interfaces';
 
 /**
  * @name ValidationMiddleware
@@ -37,83 +38,69 @@ export const validateCityParam = (req: Request, res: Response, next: NextFunctio
   if (city == null || Object.values(AVAILABLE_CITIES).includes(city as AVAILABLE_CITIES)) {
     next();
   } else {
-    res.status(400).json({ message: `Invalid city parameter. It must be one of following: ${Object.values(AVAILABLE_CITIES).join(', ')}` });
+    returnBadRequestError({ res, message: `Invalid city parameter. It must be one of following: ${Object.values(AVAILABLE_CITIES).join(', ')}` });
   }
 };
 
 export const validateSearchQueryParamMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  if (req.query.location_ids == null) {
-    req.query.location_ids = '';
-  }
+  req.query.location_ids = req.query.location_ids || '';
   const { location_ids } = req.query as { location_ids: string };
   const ids = location_ids.split(',').map(id => id.trim());
 
   if (ids.some(isInvalidNumber)) {
-    return res.status(400).json({ message: 'Invalid location_ids search parameter. It must be a string of numbers separated by comma.' });
+    return returnBadRequestError({ res, message: 'Invalid location_ids search parameter. It must be a string of numbers separated by comma.' });
   }
   next();
 };
 
-// add filters to search endpoints => property_type, area_min, area_max, price_min, price_max, bedrooms
-
 export const validateSearchFiltersMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-  if (req.query.property_type == null) {
-    req.query.property_type = '';
-  }
-  if (req.query.area_min == null) {
-    req.query.area_min = '0';
-  }
-  if (req.query.area_max == null) {
-    req.query.area_max = '';
-  }
-  if (req.query.price_min == null) {
-    req.query.price_min = '1';
-  }
-  if (req.query.price_max == null) {
-    req.query.price_max = '';
-  }
-  if (
-    req.query.bedrooms == null ||
-    req.query.bedrooms.toString().toLowerCase() === 'all' ||
-    req.query.bedrooms.toString().toLowerCase() === 'studio'
-  ) {
+  const defaultQueryParams = {
+    property_type: '',
+    area_min: '0',
+    area_max: '',
+    price_min: '1',
+    price_max: '',
+    bedrooms: '',
+    start_date: '',
+    end_date: '',
+  };
+  Object.keys(defaultQueryParams).forEach(param => {
+    if (req.query[param] == null) {
+      req.query[param] = defaultQueryParams[param];
+    }
+  });
+  req.query.property_type = PROPERTY_CATEGORY_MAP[req.query.property_type as string] || req.query.property_type;
+  if (['all', 'studio'].includes(req.query.bedrooms.toString().toLowerCase())) {
     req.query.bedrooms = '';
   }
-  if (req.query.start_date == null) {
-    req.query.start_date = '';
-  }
-  if (req.query.end_date == null) {
-    req.query.end_date = '';
-  }
 
-  const { property_type, area_min, area_max, price_min, price_max, bedrooms, start_date, end_date } = req.query as {
-    property_type: string;
-    area_min: string;
-    area_max: string;
-    price_min: string;
-    price_max: string;
-    bedrooms: string;
-    start_date: string;
-    end_date: string;
-  };
+  const { property_type, area_min, area_max, price_min, price_max, bedrooms, start_date, end_date } =
+    req.query as unknown as IvalidateSearchFiltersMiddlewareQueryParams;
 
   switch (true) {
     case isInvalidNumber(price_min):
     case price_max && isInvalidNumber(price_max):
-      return res.status(400).json({ message: 'Invalid price parameters. Both price_min and price_max must be valid numbers.' });
+      return returnBadRequestError({ res, message: 'Invalid price parameters. Both price_min and price_max must be valid numbers.' });
     case bedrooms && bedrooms.split(',').some(isInvalidNumber):
-      return res.status(400).json({ message: 'Invalid bedrooms parameter. It must be a valid number.' });
+      return returnBadRequestError({ res, message: 'Invalid bedrooms parameter. It must be a valid number.' });
     case isInvalidNumber(area_min):
     case area_max && isInvalidNumber(area_max):
-      return res.status(400).json({ message: 'Invalid area parameters. Both area_min and area_max must be valid numbers (in square feet).' });
+      return returnBadRequestError({ res, message: 'Invalid area parameters. Both area_min and area_max must be valid numbers (in square feet).' });
     case start_date && isNaN(Date.parse(start_date)):
-      return res.status(400).json({ message: 'Invalid start_date parameter. It must be a valid date in iso string format.' });
+      return returnBadRequestError({ res, message: 'Invalid start_date parameter. It must be a valid date in iso string format.' });
     case end_date && isNaN(Date.parse(end_date)):
-      return res.status(400).json({ message: 'Invalid end_date parameter. It must be a valid date in iso string format.' });
+      return returnBadRequestError({ res, message: 'Invalid end_date parameter. It must be a valid date in iso string format.' });
     case property_type != '': {
       const PROPERTY_TYPES = await getPropertyTypes();
-      if (!PROPERTY_TYPES.includes(property_type as PropertyType))
-        return res.status(400).json({ message: `Invalid property_type parameter. It must be one of following: ${PROPERTY_TYPES.join(', ')}` });
+      const propertyTypesArray = property_type.split(',').map(type => type.trim());
+      const invalidTypes = propertyTypesArray.filter(type => !PROPERTY_TYPES.includes(type as PropertyType));
+      if (invalidTypes.length > 0)
+        return returnBadRequestError({
+          res,
+          message: `Invalid property_type parameter. Following values are invalid: ${invalidTypes.join(
+            ', ',
+          )}. Valid values are: ${PROPERTY_TYPES.join(', ')}`,
+        });
     }
   }
   next();
@@ -122,21 +109,18 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
 export const validatePropertyId = (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.query as { id: string };
   if (isNaN(Number(id))) {
-    res.status(400).json({ message: 'Invalid property id parameter. It must be a valid number.' });
-  } else {
-    next();
+    return returnBadRequestError({ res, message: 'Invalid property id parameter. It must be a valid number.' });
   }
+  next();
 };
 
 export const validatePurposeFilter = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (req.query.purpose == null) {
-      req.query.purpose = 'for_sale';
-    }
+    req.query.purpose = req.query.purpose || 'for_sale';
     const { purpose } = req.query as { purpose: PropertyPurposeType };
     const dbPurpose = await getPropertyPurpose();
     if (!dbPurpose.includes(purpose)) {
-      return res.status(400).json({ message: `Invalid purpose parameter. It must be one of following: ${dbPurpose.join(',')}.` });
+      return returnBadRequestError({ res, message: `Invalid purpose parameter. It must be one of following: ${dbPurpose.join(',')}.` });
     }
     next();
   } catch (err) {
