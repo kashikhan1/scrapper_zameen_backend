@@ -12,6 +12,7 @@ import {
 } from '@/types';
 import axios, { AxiosResponse } from 'axios';
 import { City, Location, PropertiesModel, Property } from '@/models/models';
+import { splitAndTrimString } from '@/utils';
 
 @Service()
 export class PropertyService {
@@ -205,30 +206,32 @@ export class PropertyService {
 
   public async getWhereClause({
     city,
-    location_ids,
+    location_ids = '',
     area_min,
     area_max,
     price_min,
     price_max,
-    bedrooms,
+    bedrooms = '',
     start_date,
     end_date,
     purpose,
-    property_type,
+    property_type = '',
   }: IGetWhereClauseProps): Promise<WhereOptions<InferAttributes<PropertiesModel>>> {
     const cityIdPromise = this.findCityId(city);
-    const locationIds = location_ids.split(',').map(id => Number(id.trim()));
+    const locationIds = splitAndTrimString(location_ids).map(Number);
+    const bedroomsArray = splitAndTrimString(bedrooms).map(Number);
+    const propertyTypesArray = splitAndTrimString(property_type);
     const [cityId] = await Promise.all([cityIdPromise]);
     return {
       purpose,
       price: { [Op.gt]: 0 },
-      ...(property_type && { type: property_type }),
+      ...(property_type && { type: { [Op.in]: propertyTypesArray } }),
       ...(location_ids && { location_id: { [Op.in]: locationIds } }),
       ...(city && { city_id: cityId }),
-      ...((area_min || area_max) && { area: { ...(area_min && { [Op.gte]: area_min }), ...(area_max && { [Op.lt]: area_max }) } }),
-      ...((price_min || price_max) && { price: { ...(price_min && { [Op.gte]: price_min }), ...(price_max && { [Op.lt]: price_max }) } }),
-      ...(bedrooms && { bedroom: { [Op.in]: bedrooms.split(',').map(Number) } }),
-      ...((start_date || end_date) && { added: { ...(start_date && { [Op.gte]: start_date }), ...(end_date && { [Op.lt]: end_date }) } }),
+      ...((area_min || area_max) && { area: { ...(area_min && { [Op.gte]: area_min }), ...(area_max && { [Op.lte]: area_max }) } }),
+      ...((price_min || price_max) && { price: { ...(price_min && { [Op.gte]: price_min }), ...(price_max && { [Op.lte]: price_max }) } }),
+      ...(bedrooms && { bedroom: { [Op.in]: bedroomsArray } }),
+      ...((start_date || end_date) && { added: { ...(start_date && { [Op.gte]: start_date }), ...(end_date && { [Op.lte]: end_date }) } }),
     };
   }
 
