@@ -219,11 +219,12 @@ export class PropertyService {
     const cityIdPromise = this.findCityId(city);
     const locationIds = location_ids.split(',').map(id => Number(id.trim()));
     const bedroomsArray = bedrooms.split(',').map(id => Number(id.trim()));
+    const propertyTypesArray = property_type.split(',').map(type => type.trim());
     const [cityId] = await Promise.all([cityIdPromise]);
     return {
       purpose,
       price: { [Op.gt]: 0 },
-      ...(property_type && { type: property_type }),
+      ...(property_type && { type: { [Op.in]: propertyTypesArray } }),
       ...(location_ids && { location_id: { [Op.in]: locationIds } }),
       ...(city && { city_id: cityId }),
       ...((area_min || area_max) && { area: { ...(area_min && { [Op.gte]: area_min }), ...(area_max && { [Op.lt]: area_max }) } }),

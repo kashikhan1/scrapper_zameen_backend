@@ -4,8 +4,9 @@ import { NextFunction, Request, Response } from 'express';
 import { HttpException } from '@exceptions/HttpException';
 import { AVAILABLE_CITIES } from '@/types';
 import { getPropertyPurpose, getPropertyTypes } from '@/utils/helpers';
-import { isInvalidNumber } from '@/utils/validation.helpers';
+import { isInvalidNumber, PROPERTY_CATEGORY_MAP } from '@/utils/validation.helpers';
 import { PropertyPurposeType, PropertyType } from '@/models/models';
+import { PROPERTY_TYPE_CATEGORIES } from '@/constants';
 
 /**
  * @name ValidationMiddleware
@@ -60,6 +61,15 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
   if (req.query.property_type == null) {
     req.query.property_type = '';
   }
+  if (req.query.property_type == PROPERTY_TYPE_CATEGORIES.HOME) {
+    req.query.property_type = PROPERTY_CATEGORY_MAP[PROPERTY_TYPE_CATEGORIES.HOME];
+  }
+  if (req.query.property_type == PROPERTY_TYPE_CATEGORIES.PLOT) {
+    req.query.property_type = PROPERTY_CATEGORY_MAP[PROPERTY_TYPE_CATEGORIES.PLOT];
+  }
+  if (req.query.property_type == PROPERTY_TYPE_CATEGORIES.COMMERCIAL) {
+    req.query.property_type = PROPERTY_CATEGORY_MAP[PROPERTY_TYPE_CATEGORIES.COMMERCIAL];
+  }
   if (req.query.area_min == null) {
     req.query.area_min = '0';
   }
@@ -112,8 +122,14 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
       return res.status(400).json({ message: 'Invalid end_date parameter. It must be a valid date in iso string format.' });
     case property_type != '': {
       const PROPERTY_TYPES = await getPropertyTypes();
-      if (!PROPERTY_TYPES.includes(property_type as PropertyType))
-        return res.status(400).json({ message: `Invalid property_type parameter. It must be one of following: ${PROPERTY_TYPES.join(', ')}` });
+      const propertyTypesArray = property_type.split(',').map(type => type.trim());
+      const invalidTypes = propertyTypesArray.filter(type => !PROPERTY_TYPES.includes(type as PropertyType));
+      if (invalidTypes.length > 0)
+        return res.status(400).json({
+          message: `Invalid property_type parameter. Following values are invalid: ${invalidTypes.join(
+            ', ',
+          )}. Valid values are: ${PROPERTY_TYPES.join(', ')}`,
+        });
     }
   }
   next();
