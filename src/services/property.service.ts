@@ -228,10 +228,10 @@ export class PropertyService {
       ...(property_type && { type: { [Op.in]: propertyTypesArray } }),
       ...(location_ids && { location_id: { [Op.in]: locationIds } }),
       ...(city && { city_id: cityId }),
-      ...((area_min || area_max) && { area: { ...(area_min && { [Op.gte]: area_min }), ...(area_max && { [Op.lt]: area_max }) } }),
-      ...((price_min || price_max) && { price: { ...(price_min && { [Op.gte]: price_min }), ...(price_max && { [Op.lt]: price_max }) } }),
+      ...((area_min || area_max) && { area: { ...(area_min && { [Op.gte]: area_min }), ...(area_max && { [Op.lte]: area_max }) } }),
+      ...((price_min || price_max) && { price: { ...(price_min && { [Op.gte]: price_min }), ...(price_max && { [Op.lte]: price_max }) } }),
       ...(bedrooms && { bedroom: { [Op.in]: bedroomsArray } }),
-      ...((start_date || end_date) && { added: { ...(start_date && { [Op.gte]: start_date }), ...(end_date && { [Op.lt]: end_date }) } }),
+      ...((start_date || end_date) && { added: { ...(start_date && { [Op.gte]: start_date }), ...(end_date && { [Op.lte]: end_date }) } }),
     };
   }
 
