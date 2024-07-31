@@ -218,6 +218,7 @@ export class PropertyService {
   }: IGetWhereClauseProps): Promise<WhereOptions<InferAttributes<PropertiesModel>>> {
     const cityIdPromise = this.findCityId(city);
     const locationIds = location_ids.split(',').map(id => Number(id.trim()));
+    const bedroomsArray = bedrooms.split(',').map(id => Number(id.trim()));
     const [cityId] = await Promise.all([cityIdPromise]);
     return {
       purpose,
@@ -227,7 +228,7 @@ export class PropertyService {
       ...(city && { city_id: cityId }),
       ...((area_min || area_max) && { area: { ...(area_min && { [Op.gte]: area_min }), ...(area_max && { [Op.lt]: area_max }) } }),
       ...((price_min || price_max) && { price: { ...(price_min && { [Op.gte]: price_min }), ...(price_max && { [Op.lt]: price_max }) } }),
-      ...(bedrooms && { bedroom: { [Op.in]: bedrooms.split(',').map(Number) } }),
+      ...(bedrooms && { bedroom: { [Op.in]: bedroomsArray } }),
       ...((start_date || end_date) && { added: { ...(start_date && { [Op.gte]: start_date }), ...(end_date && { [Op.lt]: end_date }) } }),
     };
   }
