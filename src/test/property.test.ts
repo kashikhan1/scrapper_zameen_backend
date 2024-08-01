@@ -14,64 +14,40 @@ jest.mock('@/utils/helpers', () => ({
 }));
 const propertyServiceMock: MockProxy<PropertyService> = mock<PropertyService>();
 
+const getMockPropertiesData = () => ({
+  count: 2,
+  rows: [
+    {
+      id: 1,
+      description: 'description',
+      header: 'Header',
+      type: 'house',
+      price: 95000000,
+      cover_photo_url: 'cover_photo_url.jpeg',
+      available: true,
+      area: 450,
+      location: 'Islamabad',
+    } as any,
+    {
+      id: 1,
+      description: 'description',
+      header: 'Header',
+      type: 'house',
+      price: 9000000,
+      cover_photo_url: 'cover_photo_url.jpeg',
+      available: true,
+      area: 490,
+      location: 'Islamabad',
+    } as any,
+  ],
+});
+
 const mockfindAllProperties = () => {
-  propertyServiceMock.findAllProperties.mockResolvedValue({
-    count: 2,
-    rows: [
-      {
-        id: 1,
-        description: 'description',
-        header: 'Header',
-        type: 'house',
-        price: 95000000,
-        cover_photo_url: 'cover_photo_url.jpeg',
-        available: true,
-        area: 450,
-        location: 'Islamabad',
-      } as any,
-      {
-        id: 1,
-        description: 'description',
-        header: 'Header',
-        type: 'house',
-        price: 9000000,
-        cover_photo_url: 'cover_photo_url.jpeg',
-        available: true,
-        area: 490,
-        location: 'Islamabad',
-      } as any,
-    ],
-  });
+  propertyServiceMock.findAllProperties.mockResolvedValue(getMockPropertiesData());
 };
 
 const mockSearchProperties = () => {
-  propertyServiceMock.searchProperties.mockResolvedValue({
-    count: 2,
-    rows: [
-      {
-        id: 1,
-        description: 'description',
-        header: 'Header',
-        type: 'house',
-        price: 95000000,
-        cover_photo_url: 'cover_photo_url.jpeg',
-        available: true,
-        area: 450,
-        location: 'Islamabad',
-      } as any,
-      {
-        id: 1,
-        description: 'description',
-        header: 'Header',
-        type: 'house',
-        price: 9000000,
-        cover_photo_url: 'cover_photo_url.jpeg',
-        available: true,
-        area: 350,
-        location: 'Islamabad',
-      } as any,
-    ],
-  });
+  propertyServiceMock.searchProperties.mockResolvedValue(getMockPropertiesData());
 };
 
 describe('Property', () => {
