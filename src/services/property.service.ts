@@ -1,5 +1,5 @@
 import { Service } from 'typedi';
-import { FindAttributeOptions, InferAttributes, Op, WhereOptions, col, fn } from 'sequelize';
+import { FindAttributeOptions, InferAttributes, Op, QueryTypes, WhereOptions, col, fn } from 'sequelize';
 import { POPULARITY_TREND_URL, AREA_TREND_URL, CONTACT_URL } from '@config/index';
 import {
   AVAILABLE_CITIES,
@@ -13,6 +13,7 @@ import {
 import axios, { AxiosResponse } from 'axios';
 import { City, Location, PropertiesModel, Property } from '@/models/models';
 import { splitAndTrimString } from '@/utils';
+import { sequelize } from '@/config/sequelize';
 
 @Service()
 export class PropertyService {
@@ -236,17 +237,14 @@ export class PropertyService {
   }
 
   public async autoCompleteLocation(search: string, city: string) {
-    return Location.findAll({
-      where:
-        search || city
-          ? {
-              [Op.and]: [...(search ? [{ name: { [Op.iLike]: `%${search}%` } }] : []), ...(city ? [{ name: { [Op.iLike]: `%${city}%` } }] : [])],
-            }
-          : {},
-      attributes: ['id', 'name'],
-      limit: 10,
-      raw: true,
-    });
+    const select = 'SELECT id, name FROM';
+    const similarity = 'similarity(name, :search)';
+    return sequelize.query(
+      `${select} ${city ? `(${select} locations WHERE name ILIKE :city)` : 'locations'} ${
+        search ? `WHERE ${similarity} > 0.1 ORDER BY ${similarity} DESC` : ''
+      };`,
+      { replacements: { ...(search ? { search } : {}), ...(city ? { city: `%${city.trim()}%` } : {}) }, type: QueryTypes.SELECT },
+    );
   }
 
   public async searchProperties({
