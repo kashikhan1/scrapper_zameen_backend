@@ -1,5 +1,12 @@
 import { z } from 'zod';
+import { Request } from 'express';
 import { type FeatureSchema, type PropertySchema } from '@/models/property.schema';
+
+export interface IRequestWithSortingParams extends Request {
+  order: SortingOrder;
+}
+
+export type SortingOrder = [SORT_COLUMNS, SORT_ORDER][];
 
 export enum SORT_ORDER {
   ASC = 'ASC',
@@ -27,8 +34,7 @@ export interface ISearchPropertiesProps {
   location_ids?: string;
   page_number: number;
   page_size?: number;
-  sort_by?: SORT_COLUMNS;
-  sort_order?: SORT_ORDER;
+  sorting_order?: SortingOrder;
   property_type?: string;
   area_min?: string;
   area_max?: string;
@@ -71,8 +77,7 @@ export interface IFindAllPropertiesProps {
   city?: string;
   page_number: number;
   page_size?: number;
-  sort_by?: SORT_COLUMNS;
-  sort_order?: SORT_ORDER;
+  sorting_order?: SortingOrder;
   purpose?: string;
 }
 

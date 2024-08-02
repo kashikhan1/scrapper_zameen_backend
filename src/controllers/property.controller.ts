@@ -1,7 +1,7 @@
 import { Container } from 'typedi';
 import { NextFunction, Request, Response } from 'express';
 import { PropertyService } from '@/services/property.service';
-import { SORT_COLUMNS, SORT_ORDER } from '@/types';
+import { IRequestWithSortingParams, SORT_COLUMNS, SORT_ORDER } from '@/types';
 import { FEATURED_PROPERTY_PRICE_THRESHOLD } from '@config/index';
 import {
   IGetFeaturedPropertiesQueryParams,
@@ -14,15 +14,14 @@ import {
 export class PropertyController {
   public property = Container.get(PropertyService);
 
-  public getProperties = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public getProperties = async (req: IRequestWithSortingParams, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { page_size, page_number, sort_by, sort_order, purpose } = req.query as unknown as IGetPropertiesQueryParams;
+      const { page_size, page_number, purpose } = req.query as unknown as IGetPropertiesQueryParams;
       const { rows: properties, count: total_count } = await this.property.findAllProperties({
         city: req.params.city,
         page_number: Number(page_number),
         page_size: Number(page_size),
-        sort_by,
-        sort_order,
+        sorting_order: req.order,
         purpose,
       });
       res.status(200).json({ data: { properties, total_count, page_number, page_size }, message: 'findAll' });
@@ -68,23 +67,9 @@ export class PropertyController {
       next(error);
     }
   };
-  public searchProperties = async (req: Request, res: Response, next: NextFunction) => {
-    const {
-      location_ids,
-      page_number,
-      page_size,
-      sort_by,
-      sort_order,
-      property_type,
-      area_min,
-      area_max,
-      price_min,
-      price_max,
-      bedrooms,
-      start_date,
-      end_date,
-      purpose,
-    } = req.query as unknown as ISearchPropertiesQueryParams;
+  public searchProperties = async (req: IRequestWithSortingParams, res: Response, next: NextFunction) => {
+    const { location_ids, page_number, page_size, property_type, area_min, area_max, price_min, price_max, bedrooms, start_date, end_date, purpose } =
+      req.query as unknown as ISearchPropertiesQueryParams;
 
     try {
       const { rows: properties, count: total_count } = await this.property.searchProperties({
@@ -92,8 +77,7 @@ export class PropertyController {
         location_ids,
         page_number: Number(page_number),
         page_size: Number(page_size),
-        sort_by: sort_by as SORT_COLUMNS,
-        sort_order: sort_order as SORT_ORDER,
+        sorting_order: req.order,
         property_type,
         area_min,
         area_max,
@@ -119,7 +103,7 @@ export class PropertyController {
       const { rows: properties, count: total_count } = await this.property.searchProperties({
         page_number: Number(page_number),
         page_size: Number(page_size),
-        sort_by: SORT_COLUMNS.PRICE,
+        sorting_order: [[SORT_COLUMNS.PRICE, SORT_ORDER.ASC]],
         price_min: FEATURED_PROPERTY_PRICE_THRESHOLD,
         purpose,
       });
@@ -135,7 +119,6 @@ export class PropertyController {
       const { rows: properties, count: total_count } = await this.property.searchProperties({
         page_number: Number(page_number),
         page_size: Number(page_size),
-        sort_by: SORT_COLUMNS.ID,
         location_ids: String(property[0].location_id),
         property_type: property[0].type,
         purpose,
