@@ -1,5 +1,5 @@
 import { Service } from 'typedi';
-import { FindAttributeOptions, InferAttributes, Op, WhereOptions, col, fn } from 'sequelize';
+import { FindAttributeOptions, InferAttributes, Op, QueryTypes, WhereOptions, col, fn } from 'sequelize';
 import { POPULARITY_TREND_URL, AREA_TREND_URL, CONTACT_URL } from '@config/index';
 import {
   AVAILABLE_CITIES,
@@ -13,6 +13,7 @@ import {
 import axios, { AxiosResponse } from 'axios';
 import { City, Location, PropertiesModel, Property } from '@/models/models';
 import { splitAndTrimString } from '@/utils';
+import { sequelize } from '@/config/sequelize';
 
 @Service()
 export class PropertyService {
@@ -84,14 +85,12 @@ export class PropertyService {
     city,
     page_number,
     page_size = 10,
-    sort_by = SORT_COLUMNS.ID,
-    sort_order = SORT_ORDER.ASC,
+    sorting_order = [[SORT_COLUMNS.ID, SORT_ORDER.ASC]],
     purpose,
   }: IFindAllPropertiesProps): Promise<{
     rows: PropertiesModel[];
     count: number;
   }> {
-    this.validateSortParams(sort_by, sort_order);
     const cityId = await this.findCityId(city);
     return Property.findAndCountAll({
       where: {
@@ -101,7 +100,7 @@ export class PropertyService {
         purpose,
         ...(city && { city_id: cityId }),
       },
-      order: [[sort_by, sort_order]],
+      order: sorting_order,
       offset: (page_number - 1) * page_size,
       limit: page_size,
       include: [
@@ -236,17 +235,14 @@ export class PropertyService {
   }
 
   public async autoCompleteLocation(search: string, city: string) {
-    return Location.findAll({
-      where:
-        search || city
-          ? {
-              [Op.and]: [...(search ? [{ name: { [Op.iLike]: `%${search}%` } }] : []), ...(city ? [{ name: { [Op.iLike]: `%${city}%` } }] : [])],
-            }
-          : {},
-      attributes: ['id', 'name'],
-      limit: 10,
-      raw: true,
-    });
+    const select = 'SELECT id, name FROM';
+    const similarity = 'similarity(name, :search)';
+    return sequelize.query(
+      `${select} ${city ? `(${select} locations WHERE name ILIKE :city)` : 'locations'} ${
+        search ? `WHERE ${similarity} > 0.1 ORDER BY ${similarity} DESC` : ''
+      };`,
+      { replacements: { ...(search ? { search } : {}), ...(city ? { city: `%${city.trim()}%` } : {}) }, type: QueryTypes.SELECT },
+    );
   }
 
   public async searchProperties({
@@ -254,8 +250,7 @@ export class PropertyService {
     location_ids,
     page_number,
     page_size = 10,
-    sort_by = SORT_COLUMNS.ID,
-    sort_order = SORT_ORDER.ASC,
+    sorting_order = [[SORT_COLUMNS.ID, SORT_ORDER.ASC]],
     property_type,
     area_min,
     area_max,
@@ -269,8 +264,6 @@ export class PropertyService {
     rows: PropertiesModel[];
     count: number;
   }> {
-    this.validateSortParams(sort_by, sort_order);
-
     const whereClause = await this.getWhereClause({
       property_type,
       area_min,
@@ -287,7 +280,7 @@ export class PropertyService {
 
     return Property.findAndCountAll({
       where: whereClause,
-      order: [[sort_by, sort_order]],
+      order: sorting_order,
       offset: (page_number - 1) * page_size,
       limit: page_size,
       include: [

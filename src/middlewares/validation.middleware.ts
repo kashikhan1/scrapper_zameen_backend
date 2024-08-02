@@ -7,6 +7,7 @@ import { getPropertyPurpose, getPropertyTypes } from '@/utils/helpers';
 import { isInvalidNumber, PROPERTY_CATEGORY_MAP, returnBadRequestError } from '@/utils/validation.helpers';
 import { PropertyPurposeType, PropertyType } from '@/models/models';
 import { IvalidateSearchFiltersMiddlewareQueryParams } from '@/types/middleware.interfaces';
+import { splitAndTrimString } from '@/utils';
 
 /**
  * @name ValidationMiddleware
@@ -43,17 +44,18 @@ export const validateCityParam = (req: Request, res: Response, next: NextFunctio
 };
 
 export const validateSearchQueryParamMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  req.query.location_ids = req.query.location_ids || '';
-  const { location_ids } = req.query as { location_ids: string };
-  const ids = location_ids.split(',').map(id => id.trim());
+  const { query } = req;
+  query.location_ids = query.location_ids || '';
+  const { location_ids } = query as { location_ids: string };
 
-  if (ids.some(isInvalidNumber)) {
+  if (splitAndTrimString(location_ids).some(isInvalidNumber)) {
     return returnBadRequestError({ res, message: 'Invalid location_ids search parameter. It must be a string of numbers separated by comma.' });
   }
   next();
 };
 
 export const validateSearchFiltersMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+  const { query } = req;
   const defaultQueryParams = {
     property_type: '',
     area_min: '0',
@@ -65,23 +67,23 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
     end_date: '',
   };
   Object.keys(defaultQueryParams).forEach(param => {
-    if (req.query[param] == null) {
-      req.query[param] = defaultQueryParams[param];
+    if (query[param] == null) {
+      query[param] = defaultQueryParams[param];
     }
   });
-  req.query.property_type = PROPERTY_CATEGORY_MAP[req.query.property_type as string] || req.query.property_type;
-  if (['all', 'studio'].includes(req.query.bedrooms.toString().toLowerCase())) {
-    req.query.bedrooms = '';
+  query.property_type = PROPERTY_CATEGORY_MAP[query.property_type as string] || query.property_type;
+  if (['all', 'studio'].includes(query.bedrooms.toString().toLowerCase())) {
+    query.bedrooms = '';
   }
 
   const { property_type, area_min, area_max, price_min, price_max, bedrooms, start_date, end_date } =
-    req.query as unknown as IvalidateSearchFiltersMiddlewareQueryParams;
+    query as unknown as IvalidateSearchFiltersMiddlewareQueryParams;
 
   switch (true) {
     case isInvalidNumber(price_min):
     case price_max && isInvalidNumber(price_max):
       return returnBadRequestError({ res, message: 'Invalid price parameters. Both price_min and price_max must be valid numbers.' });
-    case bedrooms && bedrooms.split(',').some(isInvalidNumber):
+    case bedrooms && splitAndTrimString(bedrooms).some(isInvalidNumber):
       return returnBadRequestError({ res, message: 'Invalid bedrooms parameter. It must be a valid number.' });
     case isInvalidNumber(area_min):
     case area_max && isInvalidNumber(area_max):
@@ -92,7 +94,7 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
       return returnBadRequestError({ res, message: 'Invalid end_date parameter. It must be a valid date in iso string format.' });
     case property_type != '': {
       const PROPERTY_TYPES = await getPropertyTypes();
-      const propertyTypesArray = property_type.split(',').map(type => type.trim());
+      const propertyTypesArray = splitAndTrimString(property_type);
       const invalidTypes = propertyTypesArray.filter(type => !PROPERTY_TYPES.includes(type as PropertyType));
       if (invalidTypes.length > 0)
         return returnBadRequestError({
@@ -116,8 +118,9 @@ export const validatePropertyId = (req: Request, res: Response, next: NextFuncti
 
 export const validatePurposeFilter = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    req.query.purpose = req.query.purpose || 'for_sale';
-    const { purpose } = req.query as { purpose: PropertyPurposeType };
+    const { query } = req;
+    query.purpose = query.purpose || 'for_sale';
+    const { purpose } = query as { purpose: PropertyPurposeType };
     const dbPurpose = await getPropertyPurpose();
     if (!dbPurpose.includes(purpose)) {
       return returnBadRequestError({ res, message: `Invalid purpose parameter. It must be one of following: ${dbPurpose.join(',')}.` });
