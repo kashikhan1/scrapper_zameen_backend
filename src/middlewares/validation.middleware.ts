@@ -6,7 +6,7 @@ import { AVAILABLE_CITIES } from '@/types';
 import { getPropertyPurpose, getPropertyTypes } from '@/utils/helpers';
 import { isInvalidNumber, PROPERTY_CATEGORY_MAP, returnBadRequestError } from '@/utils/validation.helpers';
 import { PropertyPurposeType, PropertyType } from '@/models/models';
-import { IvalidateSearchFiltersMiddlewareQueryParams } from '@/types/middleware.interfaces';
+import { IvalidatePropertyTypeFilterQueryParams, IvalidateSearchFiltersMiddlewareQueryParams } from '@/types/middleware.interfaces';
 import { splitAndTrimString } from '@/utils';
 
 /**
@@ -76,7 +76,7 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
     query.bedrooms = '';
   }
 
-  const { property_type, area_min, area_max, price_min, price_max, bedrooms, start_date, end_date } =
+  const { area_min, area_max, price_min, price_max, bedrooms, start_date, end_date } =
     query as unknown as IvalidateSearchFiltersMiddlewareQueryParams;
 
   switch (true) {
@@ -92,18 +92,6 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
       return returnBadRequestError({ res, message: 'Invalid start_date parameter. It must be a valid date in iso string format.' });
     case end_date && isNaN(Date.parse(end_date)):
       return returnBadRequestError({ res, message: 'Invalid end_date parameter. It must be a valid date in iso string format.' });
-    case property_type != '': {
-      const PROPERTY_TYPES = await getPropertyTypes();
-      const propertyTypesArray = splitAndTrimString(property_type);
-      const invalidTypes = propertyTypesArray.filter(type => !PROPERTY_TYPES.includes(type as PropertyType));
-      if (invalidTypes.length > 0)
-        return returnBadRequestError({
-          res,
-          message: `Invalid property_type parameter. Following values are invalid: ${invalidTypes.join(
-            ', ',
-          )}. Valid values are: ${PROPERTY_TYPES.join(', ')}`,
-        });
-    }
   }
   next();
 };
@@ -125,6 +113,27 @@ export const validatePurposeFilter = async (req: Request, res: Response, next: N
     if (!dbPurpose.includes(purpose)) {
       return returnBadRequestError({ res, message: `Invalid purpose parameter. It must be one of following: ${dbPurpose.join(',')}.` });
     }
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const validatePropertyTypeFilter = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { query } = req;
+    query.property_type = query.property_type || 'house';
+    const { property_type } = query as unknown as IvalidatePropertyTypeFilterQueryParams;
+    const PROPERTY_TYPES = await getPropertyTypes();
+    const propertyTypesArray = splitAndTrimString(property_type);
+    const invalidTypes = propertyTypesArray.filter(type => !PROPERTY_TYPES.includes(type as PropertyType));
+    if (invalidTypes.length > 0)
+      return returnBadRequestError({
+        res,
+        message: `Invalid property_type parameter. Following values are invalid: ${invalidTypes.join(
+          ', ',
+        )}. Valid values are: ${PROPERTY_TYPES.join(', ')}`,
+      });
     next();
   } catch (err) {
     next(err);

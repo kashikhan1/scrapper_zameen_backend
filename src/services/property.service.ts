@@ -1,4 +1,4 @@
-import { Service } from 'typedi';
+import Container, { Service } from 'typedi';
 import { FindAttributeOptions, InferAttributes, Op, QueryTypes, WhereOptions, col, fn } from 'sequelize';
 import { POPULARITY_TREND_URL, AREA_TREND_URL, CONTACT_URL } from '@config/index';
 import {
@@ -11,21 +11,14 @@ import {
   SORT_ORDER,
 } from '@/types';
 import axios, { AxiosResponse } from 'axios';
-import { City, Location, PropertiesModel, Property } from '@/models/models';
+import { City, Location, PropertiesModel, Property, PropertyPurposeType, PropertyType } from '@/models/models';
 import { splitAndTrimString } from '@/utils';
 import { sequelize } from '@/config/sequelize';
+import { RedisService } from './redis.service';
 
 @Service()
 export class PropertyService {
-  private validateSortParams(sort_by: SORT_COLUMNS, sort_order: SORT_ORDER) {
-    if (!Object.values(SORT_COLUMNS).includes(sort_by)) {
-      throw new Error('Invalid sort_by column');
-    }
-    if (!Object.values(SORT_ORDER).includes(sort_order)) {
-      throw new Error('Invalid sort_order');
-    }
-  }
-
+  private redis = Container.get(RedisService);
   private async findCityId(city: string): Promise<number | null> {
     if (!city) return null;
 
@@ -297,5 +290,23 @@ export class PropertyService {
       raw: true,
       nest: false,
     });
+  }
+  public async getBestProperties(purpose: PropertyPurposeType, type: PropertyType = 'house', city: string = 'islamabad', limit: number = 5) {
+    const cityId = await this.findCityId(city);
+    const result = await sequelize.query(
+      `WITH RankedProperties AS (
+        SELECT
+          *,
+          ROW_NUMBER() OVER (PARTITION BY location_id ORDER BY price ASC, area DESC, bath DESC, bedroom DESC) AS rank
+          FROM properties
+          WHERE purpose = :purpose AND type = :type AND city_id = :cityId
+        )
+        SELECT *
+        FROM RankedProperties
+        WHERE rank <= :limit
+        ORDER BY location_id, rank;`,
+      { type: QueryTypes.SELECT, replacements: { purpose, limit, type, cityId } },
+    );
+    return result;
   }
 }

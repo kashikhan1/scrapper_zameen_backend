@@ -4,12 +4,14 @@ import { PropertyService } from '@/services/property.service';
 import { IRequestWithSortingParams, SORT_COLUMNS, SORT_ORDER } from '@/types';
 import { FEATURED_PROPERTY_PRICE_THRESHOLD } from '@config/index';
 import {
+  IGetBestPropertiesQueryParams,
   IGetFeaturedPropertiesQueryParams,
   IGetPropertiesQueryParams,
   IGetPropertyCountQueryParams,
   IGetSimilarPropertiesQueryParams,
   ISearchPropertiesQueryParams,
 } from '@/types/controller.interfaces';
+import { PropertyPurposeType } from '@/models/models';
 
 export class PropertyController {
   public property = Container.get(PropertyService);
@@ -133,6 +135,15 @@ export class PropertyController {
       const { query = '' } = req.query as { query: string };
       const autoCompleteLocations = await this.property.autoCompleteLocation(query, req.params.city);
       res.status(200).json({ data: autoCompleteLocations, message: 'auto-complete-locations' });
+    } catch (error) {
+      next(error);
+    }
+  };
+  public getBestProperties = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { purpose } = req.query as unknown as IGetBestPropertiesQueryParams;
+      const bestProperties = await this.property.getBestProperties(purpose as PropertyPurposeType);
+      res.json({ data: bestProperties, message: 'best-properties' });
     } catch (error) {
       next(error);
     }

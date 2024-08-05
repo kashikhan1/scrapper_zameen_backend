@@ -1,3 +1,5 @@
+import { PropertyType } from '@/models/models';
+
 export interface IvalidateSearchFiltersMiddlewareQueryParams {
   property_type: string;
   area_min: string;
@@ -12,4 +14,8 @@ export interface IvalidateSearchFiltersMiddlewareQueryParams {
 export interface IvalidatePaginationParamsMiddlewareQueryParams {
   page_size: string;
   page_number: string;
+}
+
+export interface IvalidatePropertyTypeFilterQueryParams {
+  property_type: PropertyType;
 }
