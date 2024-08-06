@@ -19,3 +19,8 @@ export interface IvalidatePaginationParamsMiddlewareQueryParams {
 export interface IvalidatePropertyTypeFilterQueryParams {
   property_type: PropertyType;
 }
+
+export interface IvalidateAreaFilterQueryParams {
+  area_min: string;
+  area_max: string;
+}

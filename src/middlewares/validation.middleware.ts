@@ -6,7 +6,11 @@ import { AVAILABLE_CITIES } from '@/types';
 import { getPropertyPurpose, getPropertyTypes } from '@/utils/helpers';
 import { isInvalidNumber, PROPERTY_CATEGORY_MAP, returnBadRequestError } from '@/utils/validation.helpers';
 import { PropertyPurposeType, PropertyType } from '@/models/models';
-import { IvalidatePropertyTypeFilterQueryParams, IvalidateSearchFiltersMiddlewareQueryParams } from '@/types/middleware.interfaces';
+import {
+  IvalidateAreaFilterQueryParams,
+  IvalidatePropertyTypeFilterQueryParams,
+  IvalidateSearchFiltersMiddlewareQueryParams,
+} from '@/types/middleware.interfaces';
 import { splitAndTrimString } from '@/utils';
 
 /**
@@ -76,8 +80,7 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
     query.bedrooms = '';
   }
 
-  const { area_min, area_max, price_min, price_max, bedrooms, start_date, end_date } =
-    query as unknown as IvalidateSearchFiltersMiddlewareQueryParams;
+  const { price_min, price_max, bedrooms, start_date, end_date } = query as unknown as IvalidateSearchFiltersMiddlewareQueryParams;
 
   switch (true) {
     case isInvalidNumber(price_min):
@@ -85,9 +88,6 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
       return returnBadRequestError({ res, message: 'Invalid price parameters. Both price_min and price_max must be valid numbers.' });
     case bedrooms && splitAndTrimString(bedrooms).some(isInvalidNumber):
       return returnBadRequestError({ res, message: 'Invalid bedrooms parameter. It must be a valid number.' });
-    case isInvalidNumber(area_min):
-    case area_max && isInvalidNumber(area_max):
-      return returnBadRequestError({ res, message: 'Invalid area parameters. Both area_min and area_max must be valid numbers (in square feet).' });
     case start_date && isNaN(Date.parse(start_date)):
       return returnBadRequestError({ res, message: 'Invalid start_date parameter. It must be a valid date in iso string format.' });
     case end_date && isNaN(Date.parse(end_date)):
@@ -138,6 +138,21 @@ export const validatePropertyTypeFilter = async (req: Request, res: Response, ne
           ', ',
         )}. Valid values are: ${PROPERTY_TYPES.join(', ')}`,
       });
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const validateAreaFilter = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { query } = req;
+    query.area_min = query.area_min || '0';
+    query.area_max = query.area_max || '';
+    const { area_min, area_max } = query as unknown as IvalidateAreaFilterQueryParams;
+    if (isInvalidNumber(area_min) || (area_max && isInvalidNumber(area_max))) {
+      return returnBadRequestError({ res, message: 'Invalid area parameters. Both area_min and area_max must be valid numbers (in square feet).' });
+    }
     next();
   } catch (err) {
     next(err);

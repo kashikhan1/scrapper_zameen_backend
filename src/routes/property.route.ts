@@ -8,6 +8,7 @@ import {
   validatePropertyId,
   validatePurposeFilter,
   validatePropertyTypeFilter,
+  validateAreaFilter,
 } from '@/middlewares/validation.middleware';
 import { validatePaginationParamsMiddleware, validateSortParamsMiddleware } from '@/middlewares/pagination.middleware';
 
@@ -35,6 +36,7 @@ export class PropertyRoute implements Routes {
       validateSearchFiltersMiddleware,
       validatePropertyTypeFilter,
       validatePurposeFilter,
+      validateAreaFilter,
       this.property.getPropertyCount,
     );
     this.router.get(`${this.path}/available-cities`, this.property.getAvailableCities);
@@ -54,10 +56,12 @@ export class PropertyRoute implements Routes {
       validateSearchFiltersMiddleware,
       validatePropertyTypeFilter,
       validatePurposeFilter,
+      validateAreaFilter,
       this.property.searchProperties,
     );
     this.router.get(
       `${this.path}/best`,
+      validateAreaFilter,
       validatePurposeFilter,
       validatePropertyTypeFilter,
       validatePaginationParamsMiddleware,
@@ -66,6 +70,7 @@ export class PropertyRoute implements Routes {
     this.router.get(
       `${this.path}/best/:city`,
       validateCityParam,
+      validateAreaFilter,
       validatePurposeFilter,
       validatePropertyTypeFilter,
       validatePaginationParamsMiddleware,
@@ -80,6 +85,7 @@ export class PropertyRoute implements Routes {
       validateSearchFiltersMiddleware,
       validatePropertyTypeFilter,
       validatePurposeFilter,
+      validateAreaFilter,
       this.property.getPropertyCount,
     );
     this.router.get(
@@ -91,6 +97,7 @@ export class PropertyRoute implements Routes {
       validateSearchFiltersMiddleware,
       validatePropertyTypeFilter,
       validatePurposeFilter,
+      validateAreaFilter,
       this.property.searchProperties,
     );
     this.router.get(

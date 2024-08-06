@@ -99,6 +99,8 @@ export interface IGetWhereClauseProps {
 export interface IGetBestPropertiesProps {
   city?: string;
   limit?: number;
+  area_min?: string;
+  area_max?: string;
   page_size: number;
   page_number: number;
   property_type?: PropertyType;

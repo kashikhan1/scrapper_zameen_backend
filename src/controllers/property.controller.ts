@@ -141,8 +141,10 @@ export class PropertyController {
   };
   public getBestProperties = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { purpose, property_type, page_number, page_size } = req.query as unknown as IGetBestPropertiesQueryParams;
+      const { area_max, area_min, purpose, property_type, page_number, page_size } = req.query as unknown as IGetBestPropertiesQueryParams;
       const { rows: properties, count: total_count } = await this.property.getBestProperties({
+        area_max,
+        area_min,
         city: req.params.city,
         page_size: Number(page_size),
         page_number: Number(page_number),
