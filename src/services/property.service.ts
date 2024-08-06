@@ -4,6 +4,7 @@ import { POPULARITY_TREND_URL, AREA_TREND_URL, CONTACT_URL } from '@config/index
 import {
   AVAILABLE_CITIES,
   IFindAllPropertiesProps,
+  IGetBestPropertiesProps,
   IGetPropertiesCountMapProps,
   IGetWhereClauseProps,
   ISearchPropertiesProps,
@@ -11,7 +12,7 @@ import {
   SORT_ORDER,
 } from '@/types';
 import axios, { AxiosResponse } from 'axios';
-import { City, Location, PropertiesModel, Property, PropertyPurposeType, PropertyType } from '@/models/models';
+import { City, Location, PropertiesModel, Property, RankedPropertyForRentView, RankedPropertyForSaleView } from '@/models/models';
 import { splitAndTrimString } from '@/utils';
 import { sequelize } from '@/config/sequelize';
 import { RedisService } from './redis.service';
@@ -29,22 +30,11 @@ export class PropertyService {
     return cityResponse?.id ?? null;
   }
 
+  private selectPropertyAttributes(): string[] {
+    return ['id', 'description', 'header', 'type', 'price', 'cover_photo_url', 'available', 'area', 'added', 'bedroom', 'bath'];
+  }
   private selectAttributes(): FindAttributeOptions {
-    return [
-      'id',
-      'description',
-      'header',
-      'type',
-      'price',
-      'cover_photo_url',
-      'available',
-      'area',
-      'added',
-      'bedroom',
-      'bath',
-      [col('Location.name'), 'location'],
-      [col('City.name'), 'city'],
-    ];
+    return [...this.selectPropertyAttributes(), [col('Location.name'), 'location'], [col('City.name'), 'city']];
   }
 
   private async mapPropertiesDetails(properties: PropertiesModel[]) {
@@ -291,22 +281,23 @@ export class PropertyService {
       nest: false,
     });
   }
-  public async getBestProperties(purpose: PropertyPurposeType, type: PropertyType = 'house', city: string = 'islamabad', limit: number = 5) {
-    const cityId = await this.findCityId(city);
-    const result = await sequelize.query(
-      `WITH RankedProperties AS (
-        SELECT
-          *,
-          ROW_NUMBER() OVER (PARTITION BY location_id ORDER BY price ASC, area DESC, bath DESC, bedroom DESC) AS rank
-          FROM properties
-          WHERE purpose = :purpose AND type = :type AND city_id = :cityId
-        )
-        SELECT *
-        FROM RankedProperties
-        WHERE rank <= :limit
-        ORDER BY location_id, rank;`,
-      { type: QueryTypes.SELECT, replacements: { purpose, limit, type, cityId } },
-    );
-    return result;
+  public async getBestProperties({ purpose, property_type, city, page_number, page_size, limit = 5 }: IGetBestPropertiesProps) {
+    const whereClause = await this.getWhereClause({ purpose, property_type, city });
+    return (purpose === 'for_sale' ? RankedPropertyForSaleView : RankedPropertyForRentView).findAndCountAll({
+      where: {
+        ...whereClause,
+        rank: {
+          [Op.lte]: limit,
+        },
+      },
+      order: [
+        ['location_id', 'ASC'],
+        ['rank', 'ASC'],
+      ],
+      offset: (page_number - 1) * page_size,
+      limit: page_size,
+      attributes: [...this.selectPropertyAttributes(), 'location_id', 'rank'],
+      raw: true,
+    });
   }
 }

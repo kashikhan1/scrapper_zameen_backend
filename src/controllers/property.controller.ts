@@ -11,7 +11,7 @@ import {
   IGetSimilarPropertiesQueryParams,
   ISearchPropertiesQueryParams,
 } from '@/types/controller.interfaces';
-import { PropertyPurposeType } from '@/models/models';
+import { PropertyPurposeType, PropertyType } from '@/models/models';
 
 export class PropertyController {
   public property = Container.get(PropertyService);
@@ -141,9 +141,15 @@ export class PropertyController {
   };
   public getBestProperties = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { purpose } = req.query as unknown as IGetBestPropertiesQueryParams;
-      const bestProperties = await this.property.getBestProperties(purpose as PropertyPurposeType);
-      res.json({ data: bestProperties, message: 'best-properties' });
+      const { purpose, property_type, page_number, page_size } = req.query as unknown as IGetBestPropertiesQueryParams;
+      const { rows: properties, count: total_count } = await this.property.getBestProperties({
+        city: req.params.city,
+        page_size: Number(page_size),
+        page_number: Number(page_number),
+        purpose: purpose as PropertyPurposeType,
+        property_type: property_type as PropertyType,
+      });
+      res.json({ data: { properties, total_count, page_number, page_size }, message: 'best-properties' });
     } catch (error) {
       next(error);
     }

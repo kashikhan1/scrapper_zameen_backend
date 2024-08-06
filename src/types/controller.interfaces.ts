@@ -52,7 +52,9 @@ export interface IGetSimilarPropertiesQueryParams {
 }
 
 export interface IGetBestPropertiesQueryParams {
-  purpose: PropertyPurposeType;
   area: number;
-  type: PropertyType;
+  page_size: string;
+  page_number: string;
+  property_type: PropertyType;
+  purpose: PropertyPurposeType;
 }

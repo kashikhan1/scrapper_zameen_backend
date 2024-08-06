@@ -122,10 +122,14 @@ export const validatePurposeFilter = async (req: Request, res: Response, next: N
 export const validatePropertyTypeFilter = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { query } = req;
-    query.property_type = query.property_type || 'house';
+    query.property_type = query.property_type || '';
     const { property_type } = query as unknown as IvalidatePropertyTypeFilterQueryParams;
-    const PROPERTY_TYPES = await getPropertyTypes();
+    if (property_type === ('' as PropertyType)) {
+      return next();
+    }
+    const propertyTypePromise = getPropertyTypes();
     const propertyTypesArray = splitAndTrimString(property_type);
+    const PROPERTY_TYPES = await propertyTypePromise;
     const invalidTypes = propertyTypesArray.filter(type => !PROPERTY_TYPES.includes(type as PropertyType));
     if (invalidTypes.length > 0)
       return returnBadRequestError({

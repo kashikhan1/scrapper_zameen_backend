@@ -56,7 +56,21 @@ export class PropertyRoute implements Routes {
       validatePurposeFilter,
       this.property.searchProperties,
     );
-    this.router.get(`${this.path}/best`, validatePurposeFilter, validatePropertyTypeFilter, this.property.getBestProperties);
+    this.router.get(
+      `${this.path}/best`,
+      validatePurposeFilter,
+      validatePropertyTypeFilter,
+      validatePaginationParamsMiddleware,
+      this.property.getBestProperties,
+    );
+    this.router.get(
+      `${this.path}/best/:city`,
+      validateCityParam,
+      validatePurposeFilter,
+      validatePropertyTypeFilter,
+      validatePaginationParamsMiddleware,
+      this.property.getBestProperties,
+    );
     this.router.get(`${this.path}/:id(\\d+)`, this.property.getPropertyById);
     this.router.get(`${this.path}/suggestions/:city`, validateCityParam, this.property.autoCompleteLocations);
     this.router.get(
