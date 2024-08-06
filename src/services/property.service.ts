@@ -281,7 +281,7 @@ export class PropertyService {
       nest: false,
     });
   }
-  public async getBestProperties({ purpose, property_type, city, page_number, page_size, area_max, area_min, limit = 5 }: IGetBestPropertiesProps) {
+  public async getBestProperties({ purpose, property_type, city, page_number, page_size, area_max, area_min, limit = 3 }: IGetBestPropertiesProps) {
     const whereClause = await this.getWhereClause({ purpose, property_type, city, area_max, area_min });
     return (purpose === 'for_sale' ? RankedPropertyForSaleView : RankedPropertyForRentView).findAndCountAll({
       where: {
