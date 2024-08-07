@@ -4,7 +4,7 @@
 module.exports = {
   async up(queryInterface, _Sequelize) {
     await queryInterface.sequelize.query(`
-        CREATE VIEW RankedPropertiesForSale AS
+        CREATE MATERIALIZED VIEW RankedPropertiesForSale AS
         WITH RankedProperties AS (
         SELECT
             p.*,
@@ -19,8 +19,9 @@ module.exports = {
         JOIN locations l ON l.id = rp.location_id
         WHERE rp.rank <= 3;
     `);
+
     await queryInterface.sequelize.query(`
-        CREATE VIEW RankedPropertiesForRent AS
+        CREATE MATERIALIZED VIEW RankedPropertiesForRent AS
         WITH RankedProperties AS (
         SELECT
             p.*,
