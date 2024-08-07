@@ -6,7 +6,11 @@ import { AVAILABLE_CITIES } from '@/types';
 import { getPropertyPurpose, getPropertyTypes } from '@/utils/helpers';
 import { isInvalidNumber, PROPERTY_CATEGORY_MAP, returnBadRequestError } from '@/utils/validation.helpers';
 import { PropertyPurposeType, PropertyType } from '@/models/models';
-import { IvalidateSearchFiltersMiddlewareQueryParams } from '@/types/middleware.interfaces';
+import {
+  IvalidateAreaFilterQueryParams,
+  IvalidatePropertyTypeFilterQueryParams,
+  IvalidateSearchFiltersMiddlewareQueryParams,
+} from '@/types/middleware.interfaces';
 import { splitAndTrimString } from '@/utils';
 
 /**
@@ -76,8 +80,7 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
     query.bedrooms = '';
   }
 
-  const { property_type, area_min, area_max, price_min, price_max, bedrooms, start_date, end_date } =
-    query as unknown as IvalidateSearchFiltersMiddlewareQueryParams;
+  const { price_min, price_max, bedrooms, start_date, end_date } = query as unknown as IvalidateSearchFiltersMiddlewareQueryParams;
 
   switch (true) {
     case isInvalidNumber(price_min):
@@ -85,25 +88,10 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
       return returnBadRequestError({ res, message: 'Invalid price parameters. Both price_min and price_max must be valid numbers.' });
     case bedrooms && splitAndTrimString(bedrooms).some(isInvalidNumber):
       return returnBadRequestError({ res, message: 'Invalid bedrooms parameter. It must be a valid number.' });
-    case isInvalidNumber(area_min):
-    case area_max && isInvalidNumber(area_max):
-      return returnBadRequestError({ res, message: 'Invalid area parameters. Both area_min and area_max must be valid numbers (in square feet).' });
     case start_date && isNaN(Date.parse(start_date)):
       return returnBadRequestError({ res, message: 'Invalid start_date parameter. It must be a valid date in iso string format.' });
     case end_date && isNaN(Date.parse(end_date)):
       return returnBadRequestError({ res, message: 'Invalid end_date parameter. It must be a valid date in iso string format.' });
-    case property_type != '': {
-      const PROPERTY_TYPES = await getPropertyTypes();
-      const propertyTypesArray = splitAndTrimString(property_type);
-      const invalidTypes = propertyTypesArray.filter(type => !PROPERTY_TYPES.includes(type as PropertyType));
-      if (invalidTypes.length > 0)
-        return returnBadRequestError({
-          res,
-          message: `Invalid property_type parameter. Following values are invalid: ${invalidTypes.join(
-            ', ',
-          )}. Valid values are: ${PROPERTY_TYPES.join(', ')}`,
-        });
-    }
   }
   next();
 };
@@ -124,6 +112,46 @@ export const validatePurposeFilter = async (req: Request, res: Response, next: N
     const dbPurpose = await getPropertyPurpose();
     if (!dbPurpose.includes(purpose)) {
       return returnBadRequestError({ res, message: `Invalid purpose parameter. It must be one of following: ${dbPurpose.join(',')}.` });
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const validatePropertyTypeFilter = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { query } = req;
+    query.property_type = query.property_type || '';
+    const { property_type } = query as unknown as IvalidatePropertyTypeFilterQueryParams;
+    if (property_type === ('' as PropertyType)) {
+      return next();
+    }
+    const propertyTypePromise = getPropertyTypes();
+    const propertyTypesArray = splitAndTrimString(property_type);
+    const PROPERTY_TYPES = await propertyTypePromise;
+    const invalidTypes = propertyTypesArray.filter(type => !PROPERTY_TYPES.includes(type as PropertyType));
+    if (invalidTypes.length > 0)
+      return returnBadRequestError({
+        res,
+        message: `Invalid property_type parameter. Following values are invalid: ${invalidTypes.join(
+          ', ',
+        )}. Valid values are: ${PROPERTY_TYPES.join(', ')}`,
+      });
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const validateAreaFilter = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { query } = req;
+    query.area_min = query.area_min || '0';
+    query.area_max = query.area_max || '';
+    const { area_min, area_max } = query as unknown as IvalidateAreaFilterQueryParams;
+    if (isInvalidNumber(area_min) || (area_max && isInvalidNumber(area_max))) {
+      return returnBadRequestError({ res, message: 'Invalid area parameters. Both area_min and area_max must be valid numbers (in square feet).' });
     }
     next();
   } catch (err) {

@@ -1,3 +1,4 @@
+import { PropertyPurposeType, PropertyType } from '@/models/models';
 import { SORT_COLUMNS, SORT_ORDER } from '.';
 
 export interface IGetPropertiesQueryParams {
@@ -48,4 +49,13 @@ export interface IGetSimilarPropertiesQueryParams {
   page_size: string;
   page_number: string;
   purpose: string;
+}
+
+export interface IGetBestPropertiesQueryParams {
+  area_min: string;
+  area_max: string;
+  page_size: string;
+  page_number: string;
+  property_type: PropertyType;
+  purpose: PropertyPurposeType;
 }

@@ -24,4 +24,8 @@ export const envVarsSchema = object({
     .min(1)
     .transform(value => value === 'true'),
   REDIS_DB_URL: string().min(1),
+  EMAIL_SERVICE: string().min(1),
+  SENDER_EMAIL: string().min(1),
+  SENDER_EMAIL_PASSWORD: string().min(1),
+  EMAIL_RECIPIENTS_LIST: string().min(1),
 });

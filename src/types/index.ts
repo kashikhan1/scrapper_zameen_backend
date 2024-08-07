@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { Request } from 'express';
 import { type FeatureSchema, type PropertySchema } from '@/models/property.schema';
+import { PropertyPurposeType, PropertyType } from '@/models/models';
 
 export interface IRequestWithSortingParams extends Request {
   order: SortingOrder;
@@ -94,6 +95,18 @@ export interface IGetWhereClauseProps {
   purpose?: string;
   property_type?: string;
 }
+
+export interface IGetBestPropertiesProps {
+  city?: string;
+  limit?: number;
+  area_min?: string;
+  area_max?: string;
+  page_size: number;
+  page_number: number;
+  property_type?: PropertyType;
+  purpose?: PropertyPurposeType;
+}
+
 // export interface IProperty {
 //   id: number;
 //   desc: string;

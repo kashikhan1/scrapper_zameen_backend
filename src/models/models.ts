@@ -278,3 +278,45 @@ Location.hasMany(Property, { foreignKey: 'location_id' });
 
 Property.belongsTo(City, { foreignKey: 'city_id' });
 City.hasMany(Property, { foreignKey: 'city_id' });
+
+export class RankedPropertyForSaleView extends Model {}
+RankedPropertyForSaleView.init(
+  {
+    ...Property.getAttributes(),
+    rank: {
+      type: DataTypes.INTEGER,
+    },
+  },
+  {
+    sequelize,
+    modelName: 'RankedPropertyForSale',
+    tableName: 'rankedpropertiesforsale',
+    timestamps: false,
+  },
+);
+
+RankedPropertyForSaleView.belongsTo(Location, { foreignKey: 'location_id' });
+Location.hasMany(RankedPropertyForSaleView, { foreignKey: 'location_id' });
+
+RankedPropertyForSaleView.belongsTo(City, { foreignKey: 'city_id' });
+City.hasMany(RankedPropertyForSaleView, { foreignKey: 'city_id' });
+export class RankedPropertyForRentView extends Model {}
+RankedPropertyForRentView.init(
+  {
+    ...Property.getAttributes(),
+    rank: {
+      type: DataTypes.INTEGER,
+    },
+  },
+  {
+    sequelize,
+    modelName: 'RankedPropertyForRent',
+    tableName: 'rankedpropertiesforrent',
+    timestamps: false,
+  },
+);
+RankedPropertyForRentView.belongsTo(Location, { foreignKey: 'location_id' });
+Location.hasMany(RankedPropertyForRentView, { foreignKey: 'location_id' });
+
+RankedPropertyForRentView.belongsTo(City, { foreignKey: 'city_id' });
+City.hasMany(RankedPropertyForRentView, { foreignKey: 'city_id' });

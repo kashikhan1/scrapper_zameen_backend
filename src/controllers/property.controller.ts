@@ -4,12 +4,14 @@ import { PropertyService } from '@/services/property.service';
 import { IRequestWithSortingParams, SORT_COLUMNS, SORT_ORDER } from '@/types';
 import { FEATURED_PROPERTY_PRICE_THRESHOLD } from '@config/index';
 import {
+  IGetBestPropertiesQueryParams,
   IGetFeaturedPropertiesQueryParams,
   IGetPropertiesQueryParams,
   IGetPropertyCountQueryParams,
   IGetSimilarPropertiesQueryParams,
   ISearchPropertiesQueryParams,
 } from '@/types/controller.interfaces';
+import { PropertyPurposeType, PropertyType } from '@/models/models';
 
 export class PropertyController {
   public property = Container.get(PropertyService);
@@ -133,6 +135,23 @@ export class PropertyController {
       const { query = '' } = req.query as { query: string };
       const autoCompleteLocations = await this.property.autoCompleteLocation(query, req.params.city);
       res.status(200).json({ data: autoCompleteLocations, message: 'auto-complete-locations' });
+    } catch (error) {
+      next(error);
+    }
+  };
+  public getBestProperties = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { area_max, area_min, purpose, property_type, page_number, page_size } = req.query as unknown as IGetBestPropertiesQueryParams;
+      const { rows: properties, count: total_count } = await this.property.getBestProperties({
+        area_max,
+        area_min,
+        city: req.params.city,
+        page_size: Number(page_size),
+        page_number: Number(page_number),
+        purpose: purpose as PropertyPurposeType,
+        property_type: property_type as PropertyType,
+      });
+      res.json({ data: { properties, total_count, page_number, page_size }, message: 'best-properties' });
     } catch (error) {
       next(error);
     }

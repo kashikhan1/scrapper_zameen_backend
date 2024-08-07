@@ -1,9 +1,10 @@
-import { Service } from 'typedi';
+import Container, { Service } from 'typedi';
 import { FindAttributeOptions, InferAttributes, Op, QueryTypes, WhereOptions, col, fn } from 'sequelize';
 import { POPULARITY_TREND_URL, AREA_TREND_URL, CONTACT_URL } from '@config/index';
 import {
   AVAILABLE_CITIES,
   IFindAllPropertiesProps,
+  IGetBestPropertiesProps,
   IGetPropertiesCountMapProps,
   IGetWhereClauseProps,
   ISearchPropertiesProps,
@@ -11,21 +12,14 @@ import {
   SORT_ORDER,
 } from '@/types';
 import axios, { AxiosResponse } from 'axios';
-import { City, Location, PropertiesModel, Property } from '@/models/models';
+import { City, Location, PropertiesModel, Property, RankedPropertyForRentView, RankedPropertyForSaleView } from '@/models/models';
 import { splitAndTrimString } from '@/utils';
 import { sequelize } from '@/config/sequelize';
+import { RedisService } from './redis.service';
 
 @Service()
 export class PropertyService {
-  private validateSortParams(sort_by: SORT_COLUMNS, sort_order: SORT_ORDER) {
-    if (!Object.values(SORT_COLUMNS).includes(sort_by)) {
-      throw new Error('Invalid sort_by column');
-    }
-    if (!Object.values(SORT_ORDER).includes(sort_order)) {
-      throw new Error('Invalid sort_order');
-    }
-  }
-
+  private redis = Container.get(RedisService);
   private async findCityId(city: string): Promise<number | null> {
     if (!city) return null;
 
@@ -36,22 +30,11 @@ export class PropertyService {
     return cityResponse?.id ?? null;
   }
 
-  private selectAttributes(): FindAttributeOptions {
-    return [
-      'id',
-      'description',
-      'header',
-      'type',
-      'price',
-      'cover_photo_url',
-      'available',
-      'area',
-      'added',
-      'bedroom',
-      'bath',
-      [col('Location.name'), 'location'],
-      [col('City.name'), 'city'],
-    ];
+  private selectPropertyAttributes(): string[] {
+    return ['id', 'description', 'header', 'type', 'price', 'cover_photo_url', 'available', 'area', 'added', 'bedroom', 'bath'];
+  }
+  private selectAttributes(includeProperties: string[] = []): FindAttributeOptions {
+    return [...this.selectPropertyAttributes(), [col('Location.name'), 'location'], [col('City.name'), 'city'], ...includeProperties];
   }
 
   private async mapPropertiesDetails(properties: PropertiesModel[]) {
@@ -296,6 +279,30 @@ export class PropertyService {
       attributes: this.selectAttributes(),
       raw: true,
       nest: false,
+    });
+  }
+  public async getBestProperties({ purpose, property_type, city, page_number, page_size, area_max, area_min }: IGetBestPropertiesProps) {
+    const whereClause = await this.getWhereClause({ purpose, property_type, city, area_max, area_min });
+    return (purpose === 'for_sale' ? RankedPropertyForSaleView : RankedPropertyForRentView).findAndCountAll({
+      where: whereClause,
+      order: [
+        ['location_id', 'ASC'],
+        ['rank', 'ASC'],
+      ],
+      offset: (page_number - 1) * page_size,
+      limit: page_size,
+      include: [
+        {
+          model: Location,
+          attributes: [],
+        },
+        {
+          model: City,
+          attributes: [],
+        },
+      ],
+      attributes: this.selectAttributes(['rank']),
+      raw: true,
     });
   }
 }

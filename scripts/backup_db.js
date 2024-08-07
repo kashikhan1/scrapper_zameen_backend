@@ -5,7 +5,7 @@ const { PassThrough } = require('stream');
 const cliProgress = require('cli-progress');
 
 const credentials = require('../credentials/credentials.json');
-const folderId = '1ZDYqmWVVMk6sVeMrKIDwCDx7GTEliWyK';
+const folderId = '1NJD13ZcCxq54ElxfTyTE-KC8GzfDKMRL';
 const backupFileName = `zameen_scrapper_db_node_dump_${getCurrentDate()}.sql`;
 
 function getCurrentDate() {
@@ -20,7 +20,17 @@ function createDbDumpStream() {
   const dumpStream = new PassThrough();
   const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
   progressBar.start(100, 0);
-  const dumpProcess = spawn('sudo', ['docker', 'exec', '-t', 'my_postgres_container', 'pg_dumpall', '-c', '-U', 'zameen_scrapper_admin']);
+  const dumpProcess = spawn('sudo', [
+    'docker',
+    'exec',
+    '-t',
+    'my_postgres_container',
+    'pg_dump',
+    '-c',
+    '-U',
+    'zameen_scrapper_admin',
+    'zameen_scrapper_db_node',
+  ]);
   let progress = 0;
   dumpProcess.stdout.on('data', () => {
     progress += 1;

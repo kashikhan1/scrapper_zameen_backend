@@ -7,6 +7,8 @@ import {
   validateSearchFiltersMiddleware,
   validatePropertyId,
   validatePurposeFilter,
+  validatePropertyTypeFilter,
+  validateAreaFilter,
 } from '@/middlewares/validation.middleware';
 import { validatePaginationParamsMiddleware, validateSortParamsMiddleware } from '@/middlewares/pagination.middleware';
 
@@ -32,7 +34,9 @@ export class PropertyRoute implements Routes {
       `${this.path}/count`,
       validateSearchQueryParamMiddleware,
       validateSearchFiltersMiddleware,
+      validatePropertyTypeFilter,
       validatePurposeFilter,
+      validateAreaFilter,
       this.property.getPropertyCount,
     );
     this.router.get(`${this.path}/available-cities`, this.property.getAvailableCities);
@@ -50,8 +54,27 @@ export class PropertyRoute implements Routes {
       validatePaginationParamsMiddleware,
       validateSortParamsMiddleware,
       validateSearchFiltersMiddleware,
+      validatePropertyTypeFilter,
       validatePurposeFilter,
+      validateAreaFilter,
       this.property.searchProperties,
+    );
+    this.router.get(
+      `${this.path}/best`,
+      validateAreaFilter,
+      validatePurposeFilter,
+      validatePropertyTypeFilter,
+      validatePaginationParamsMiddleware,
+      this.property.getBestProperties,
+    );
+    this.router.get(
+      `${this.path}/best/:city`,
+      validateCityParam,
+      validateAreaFilter,
+      validatePurposeFilter,
+      validatePropertyTypeFilter,
+      validatePaginationParamsMiddleware,
+      this.property.getBestProperties,
     );
     this.router.get(`${this.path}/:id(\\d+)`, this.property.getPropertyById);
     this.router.get(`${this.path}/suggestions/:city`, validateCityParam, this.property.autoCompleteLocations);
@@ -60,7 +83,9 @@ export class PropertyRoute implements Routes {
       validateCityParam,
       validateSearchQueryParamMiddleware,
       validateSearchFiltersMiddleware,
+      validatePropertyTypeFilter,
       validatePurposeFilter,
+      validateAreaFilter,
       this.property.getPropertyCount,
     );
     this.router.get(
@@ -70,7 +95,9 @@ export class PropertyRoute implements Routes {
       validateSortParamsMiddleware,
       validateCityParam,
       validateSearchFiltersMiddleware,
+      validatePropertyTypeFilter,
       validatePurposeFilter,
+      validateAreaFilter,
       this.property.searchProperties,
     );
     this.router.get(
