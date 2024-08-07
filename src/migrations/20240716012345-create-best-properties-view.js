@@ -16,7 +16,8 @@ module.exports = {
         rp.*,
         l.name AS location
         FROM RankedProperties rp
-        JOIN locations l ON l.id = rp.location_id;
+        JOIN locations l ON l.id = rp.location_id
+        WHERE rp.rank <= 3;
     `);
     await queryInterface.sequelize.query(`
         CREATE VIEW RankedPropertiesForRent AS
@@ -31,7 +32,8 @@ module.exports = {
         rp.*,
         l.name AS location
         FROM RankedProperties rp
-        JOIN locations l ON l.id = rp.location_id;
+        JOIN locations l ON l.id = rp.location_id
+        WHERE rp.rank <= 3;
     `);
   },
   async down(queryInterface, _Sequelize) {
