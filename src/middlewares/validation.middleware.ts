@@ -75,7 +75,7 @@ export const validateSearchFiltersMiddleware = async (req: Request, res: Respons
       query[param] = defaultQueryParams[param];
     }
   });
-  query.property_type = PROPERTY_CATEGORY_MAP[query.property_type as string] || query.property_type;
+
   if (['all', 'studio'].includes(query.bedrooms.toString().toLowerCase())) {
     query.bedrooms = '';
   }
@@ -122,7 +122,7 @@ export const validatePurposeFilter = async (req: Request, res: Response, next: N
 export const validatePropertyTypeFilter = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { query } = req;
-    query.property_type = query.property_type || '';
+    query.property_type = PROPERTY_CATEGORY_MAP[query.property_type as string] || query.property_type || '';
     const { property_type } = query as unknown as IvalidatePropertyTypeFilterQueryParams;
     if (property_type === ('' as PropertyType)) {
       return next();
