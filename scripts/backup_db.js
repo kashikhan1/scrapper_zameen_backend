@@ -3,9 +3,11 @@ const { google } = require('googleapis');
 const { JWT } = require('google-auth-library');
 const { PassThrough } = require('stream');
 const cliProgress = require('cli-progress');
+require('dotenv').config({ path: '.env.production.local' });
 
+const { DB_BACKUP_FOLDER_ID, POSTGRES_USER, POSTGRES_DB } = process.env;
 const credentials = require('../credentials/credentials.json');
-const folderId = '1NJD13ZcCxq54ElxfTyTE-KC8GzfDKMRL';
+const folderId = DB_BACKUP_FOLDER_ID;
 const backupFileName = `zameen_scrapper_db_node_dump_${getCurrentDate()}.sql`;
 
 function getCurrentDate() {
@@ -20,17 +22,7 @@ function createDbDumpStream() {
   const dumpStream = new PassThrough();
   const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
   progressBar.start(100, 0);
-  const dumpProcess = spawn('sudo', [
-    'docker',
-    'exec',
-    '-t',
-    'my_postgres_container',
-    'pg_dump',
-    '-c',
-    '-U',
-    'zameen_scrapper_admin',
-    'zameen_scrapper_db_node',
-  ]);
+  const dumpProcess = spawn('sudo', ['docker', 'exec', '-t', 'my_postgres_container', 'pg_dump', '-c', '-U', POSTGRES_USER, POSTGRES_DB]);
   let progress = 0;
   dumpProcess.stdout.on('data', () => {
     progress += 1;

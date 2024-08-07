@@ -18,12 +18,13 @@ export class PropertyController {
 
   public getProperties = async (req: IRequestWithSortingParams, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { page_size, page_number, purpose } = req.query as unknown as IGetPropertiesQueryParams;
+      const { query, params, order } = req;
+      const { page_size, page_number, purpose } = query as unknown as IGetPropertiesQueryParams;
       const { rows: properties, count: total_count } = await this.property.findAllProperties({
-        city: req.params.city,
+        city: params.city,
         page_number: Number(page_number),
         page_size: Number(page_size),
-        sorting_order: req.order,
+        sorting_order: order,
         purpose,
       });
       res.status(200).json({ data: { properties, total_count, page_number, page_size }, message: 'findAll' });
@@ -42,10 +43,11 @@ export class PropertyController {
   };
   public getPropertyCount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      const { query, params } = req;
       const { location_ids, area_min, area_max, price_min, price_max, bedrooms, start_date, end_date, purpose } =
-        req.query as unknown as IGetPropertyCountQueryParams;
+        query as unknown as IGetPropertyCountQueryParams;
       const propertyCount = await this.property.getPropertiesCountMap({
-        city: req.params.city,
+        city: params.city,
         location_ids,
         area_min,
         area_max,
@@ -70,16 +72,17 @@ export class PropertyController {
     }
   };
   public searchProperties = async (req: IRequestWithSortingParams, res: Response, next: NextFunction) => {
+    const { query, params, order } = req;
     const { location_ids, page_number, page_size, property_type, area_min, area_max, price_min, price_max, bedrooms, start_date, end_date, purpose } =
-      req.query as unknown as ISearchPropertiesQueryParams;
+      query as unknown as ISearchPropertiesQueryParams;
 
     try {
       const { rows: properties, count: total_count } = await this.property.searchProperties({
-        city: req.params.city,
+        city: params.city,
         location_ids,
         page_number: Number(page_number),
         page_size: Number(page_size),
-        sorting_order: req.order,
+        sorting_order: order,
         property_type,
         area_min,
         area_max,
@@ -132,8 +135,9 @@ export class PropertyController {
   };
   public autoCompleteLocations = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { query = '' } = req.query as { query: string };
-      const autoCompleteLocations = await this.property.autoCompleteLocation(query, req.params.city);
+      const { query: ReqQuery, params } = req;
+      const { query = '' } = ReqQuery as { query: string };
+      const autoCompleteLocations = await this.property.autoCompleteLocation(query, params.city);
       res.status(200).json({ data: autoCompleteLocations, message: 'auto-complete-locations' });
     } catch (error) {
       next(error);
@@ -141,11 +145,12 @@ export class PropertyController {
   };
   public getBestProperties = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { area_max, area_min, purpose, property_type, page_number, page_size } = req.query as unknown as IGetBestPropertiesQueryParams;
+      const { query, params } = req;
+      const { area_max, area_min, purpose, property_type, page_number, page_size } = query as unknown as IGetBestPropertiesQueryParams;
       const { rows: properties, count: total_count } = await this.property.getBestProperties({
         area_max,
         area_min,
-        city: req.params.city,
+        city: params.city,
         page_size: Number(page_size),
         page_number: Number(page_number),
         purpose: purpose as PropertyPurposeType,
