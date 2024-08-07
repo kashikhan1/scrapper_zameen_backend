@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { HttpException } from '@exceptions/HttpException';
 import { logger } from '@utils/logger';
-import { NODE_ENV, SENDER_EMAIL } from '@/config';
+import { NODE_ENV, EMAIL_RECIPIENTS_LIST } from '@/config';
 import { transporter } from '@/config/nodemailer';
 import { generateEmailContent, getSendEmailPayload } from '@/utils';
 
@@ -25,13 +25,15 @@ export const ErrorMiddleware = (error: HttpException, req: Request, res: Respons
         status: status,
         message: message,
       });
-      transporter.sendMail(
-        getSendEmailPayload({
-          to: SENDER_EMAIL,
-          subject: 'Internal Server Error',
-          html,
-        }),
-      );
+      const emailReceipients = EMAIL_RECIPIENTS_LIST?.split(',') ?? [];
+      emailReceipients.forEach(email => {
+        transporter.sendMail(
+          getSendEmailPayload({
+            to: email,
+            html,
+          }),
+        );
+      });
     }
     res.status(status).json({ message });
   } catch (error) {

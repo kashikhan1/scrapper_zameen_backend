@@ -27,4 +27,5 @@ export const envVarsSchema = object({
   EMAIL_SERVICE: string().min(1),
   SENDER_EMAIL: string().min(1),
   SENDER_EMAIL_PASSWORD: string().min(1),
+  EMAIL_RECIPIENTS_LIST: string().min(1),
 });
