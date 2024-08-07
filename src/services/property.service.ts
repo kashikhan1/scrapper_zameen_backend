@@ -33,8 +33,8 @@ export class PropertyService {
   private selectPropertyAttributes(): string[] {
     return ['id', 'description', 'header', 'type', 'price', 'cover_photo_url', 'available', 'area', 'added', 'bedroom', 'bath'];
   }
-  private selectAttributes(): FindAttributeOptions {
-    return [...this.selectPropertyAttributes(), [col('Location.name'), 'location'], [col('City.name'), 'city']];
+  private selectAttributes(includeProperties: string[] = []): FindAttributeOptions {
+    return [...this.selectPropertyAttributes(), [col('Location.name'), 'location'], [col('City.name'), 'city'], ...includeProperties];
   }
 
   private async mapPropertiesDetails(properties: PropertiesModel[]) {
@@ -291,7 +291,17 @@ export class PropertyService {
       ],
       offset: (page_number - 1) * page_size,
       limit: page_size,
-      attributes: [...this.selectPropertyAttributes(), 'location_id', 'rank'],
+      include: [
+        {
+          model: Location,
+          attributes: [],
+        },
+        {
+          model: City,
+          attributes: [],
+        },
+      ],
+      attributes: this.selectAttributes(['rank']),
       raw: true,
     });
   }

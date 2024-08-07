@@ -295,6 +295,11 @@ RankedPropertyForSaleView.init(
   },
 );
 
+RankedPropertyForSaleView.belongsTo(Location, { foreignKey: 'location_id' });
+Location.hasMany(RankedPropertyForSaleView, { foreignKey: 'location_id' });
+
+RankedPropertyForSaleView.belongsTo(City, { foreignKey: 'city_id' });
+City.hasMany(RankedPropertyForSaleView, { foreignKey: 'city_id' });
 export class RankedPropertyForRentView extends Model {}
 RankedPropertyForRentView.init(
   {
@@ -310,3 +315,8 @@ RankedPropertyForRentView.init(
     timestamps: false,
   },
 );
+RankedPropertyForRentView.belongsTo(Location, { foreignKey: 'location_id' });
+Location.hasMany(RankedPropertyForRentView, { foreignKey: 'location_id' });
+
+RankedPropertyForRentView.belongsTo(City, { foreignKey: 'city_id' });
+City.hasMany(RankedPropertyForRentView, { foreignKey: 'city_id' });
