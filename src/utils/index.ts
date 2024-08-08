@@ -31,8 +31,8 @@ export const generateEmailContent = ({ path, method, status, message }) => {
   `;
 };
 
-export const sendMessageToSlack = ({ path, method, status, message }) => {
-  const body = {
+export const sendErrorMessageToSlack = ({ path, method, status, message }) => {
+  const payload = {
     text:
       `<!channel> :rotating_light: *Internal Server Error* :rotating_light:\n\n` +
       `*Request Path:* ${path}\n` +
@@ -43,7 +43,7 @@ export const sendMessageToSlack = ({ path, method, status, message }) => {
   };
 
   axios
-    .post(SLACK_HOOK_URL, body)
+    .post(SLACK_HOOK_URL, payload)
     .then(response => {
       logger.log('Message sent to Slack:', response.data);
     })

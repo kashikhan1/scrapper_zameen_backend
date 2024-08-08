@@ -3,7 +3,7 @@ import { HttpException } from '@exceptions/HttpException';
 import { logger } from '@utils/logger';
 import { NODE_ENV, EMAIL_RECIPIENTS_LIST } from '@/config';
 import { transporter } from '@/config/nodemailer';
-import { generateEmailContent, getSendEmailPayload, sendMessageToSlack, splitAndTrimString } from '@/utils';
+import { generateEmailContent, getSendEmailPayload, sendErrorMessageToSlack, splitAndTrimString } from '@/utils';
 
 export const ErrorMiddleware = (error: HttpException, req: Request, res: Response, next: NextFunction) => {
   try {
@@ -35,7 +35,7 @@ export const ErrorMiddleware = (error: HttpException, req: Request, res: Respons
           }),
         );
       });
-      sendMessageToSlack({ path, method, status, message });
+      sendErrorMessageToSlack({ path, method, status, message });
     }
     res.status(status).json({ message });
   } catch (error) {
