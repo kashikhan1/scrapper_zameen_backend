@@ -24,6 +24,7 @@ function createDbDumpStream() {
   progressBar.start(100, 0);
   const dumpProcess = spawn('sudo', ['docker', 'exec', '-t', 'my_postgres_container', 'pg_dump', '-c', '-U', POSTGRES_USER, POSTGRES_DB]);
   let progress = 0;
+
   dumpProcess.stdout.on('data', () => {
     progress += 1;
     if (progress > progressBar.getTotal()) {
@@ -31,10 +32,13 @@ function createDbDumpStream() {
     }
     progressBar.update(progress);
   });
+
   dumpProcess.stdout.pipe(dumpStream);
+
   dumpProcess.stderr.on('data', data => {
     console.error(`pg_dumpall stderr: ${data}`);
   });
+
   dumpProcess.on('close', code => {
     progressBar.stop();
     if (code !== 0) {
@@ -81,11 +85,47 @@ async function uploadToDrive(auth, dumpStream) {
   }
 }
 
+async function deleteOldBackups(auth) {
+  const drive = google.drive({ version: 'v3', auth });
+  const threeDaysAgo = new Date();
+  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+  const listFiles = async () => {
+    const response = await drive.files.list({
+      q: `'${folderId}' in parents`,
+      fields: 'files(id, name, createdTime)',
+    });
+    return response.data.files;
+  };
+
+  const deleteFile = async fileId => {
+    await drive.files.delete({
+      fileId,
+    });
+  };
+
+  try {
+    const files = await listFiles();
+    if (files.length === 0) return;
+
+    for (const { id, name, createdTime } of files) {
+      const fileCreatedTime = new Date(createdTime);
+      if (fileCreatedTime < threeDaysAgo) {
+        await deleteFile(id);
+        console.log(`Deleted old backup file: ${name}`);
+      }
+    }
+  } catch (error) {
+    console.error('Error deleting old backups:', error);
+  }
+}
+
 async function main() {
   try {
     const auth = await authenticate();
     const dumpStream = createDbDumpStream();
     await uploadToDrive(auth, dumpStream);
+    await deleteOldBackups(auth);
   } catch (error) {
     console.error('An error occurred:', error.message);
   }
