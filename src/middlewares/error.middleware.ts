@@ -3,7 +3,7 @@ import { HttpException } from '@exceptions/HttpException';
 import { logger } from '@utils/logger';
 import { NODE_ENV, EMAIL_RECIPIENTS_LIST } from '@/config';
 import { transporter } from '@/config/nodemailer';
-import { generateEmailContent, getSendEmailPayload } from '@/utils';
+import { generateEmailContent, getSendEmailPayload, sendErrorMessageToSlack, splitAndTrimString } from '@/utils';
 
 export const ErrorMiddleware = (error: HttpException, req: Request, res: Response, next: NextFunction) => {
   try {
@@ -16,16 +16,17 @@ export const ErrorMiddleware = (error: HttpException, req: Request, res: Respons
     }
     const status: number = error.status || 500;
 
-    logger.error(`[${req.method}] ${req.path} >> StatusCode:: ${status}, Message:: ${message}`);
+    const { path, method } = req;
+    logger.error(`[${method}] ${path} >> StatusCode:: ${status}, Message:: ${message}`);
 
     if (NODE_ENV === 'production' && status === 500) {
       const html = generateEmailContent({
-        path: req.path,
-        method: req.method,
+        path: path,
+        method: method,
         status: status,
         message: message,
       });
-      const emailReceipients = EMAIL_RECIPIENTS_LIST?.split(',') ?? [];
+      const emailReceipients = splitAndTrimString(EMAIL_RECIPIENTS_LIST);
       emailReceipients.forEach(email => {
         transporter.sendMail(
           getSendEmailPayload({
@@ -34,6 +35,7 @@ export const ErrorMiddleware = (error: HttpException, req: Request, res: Respons
           }),
         );
       });
+      sendErrorMessageToSlack({ path, method, status, message });
     }
     res.status(status).json({ message });
   } catch (error) {

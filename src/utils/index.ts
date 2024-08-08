@@ -1,5 +1,7 @@
+import axios from 'axios';
+import { logger } from './logger';
 import Mail from 'nodemailer/lib/mailer';
-import { SENDER_EMAIL } from '@/config';
+import { SENDER_EMAIL, SLACK_HOOK_URL } from '@/config';
 
 export const splitAndTrimString = (str: string = '', sep: string = ',') => {
   return str.split(sep).map(s => s.trim());
@@ -27,4 +29,25 @@ export const generateEmailContent = ({ path, method, status, message }) => {
       </ul>
     </div>
   `;
+};
+
+export const sendErrorMessageToSlack = ({ path, method, status, message }) => {
+  const payload = {
+    text:
+      `<!channel> :rotating_light: *Internal Server Error* :rotating_light:\n\n` +
+      `*Request Path:* ${path}\n` +
+      `*Request Method:* ${method}\n` +
+      `*Response Status:* ${status}\n` +
+      `*Error Message:* ${message}\n\n` +
+      `Please investigate this issue promptly.`,
+  };
+
+  axios
+    .post(SLACK_HOOK_URL, payload)
+    .then(response => {
+      logger.log('Message sent to Slack:', response.data);
+    })
+    .catch(error => {
+      logger.error('Error sending message to Slack:', error);
+    });
 };
