@@ -28,4 +28,5 @@ export const envVarsSchema = object({
   SENDER_EMAIL: string().min(1),
   SENDER_EMAIL_PASSWORD: string().min(1),
   EMAIL_RECIPIENTS_LIST: string().min(1),
+  SLACK_HOOK_URL: string().min(1).url(),
 });
