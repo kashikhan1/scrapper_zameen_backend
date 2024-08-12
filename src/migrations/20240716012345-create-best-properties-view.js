@@ -4,7 +4,7 @@
 module.exports = {
   async up(queryInterface, _Sequelize) {
     await queryInterface.sequelize.query(`
-        CREATE MATERIALIZED VIEW RankedPropertiesForSale AS
+        CREATE MATERIALIZED VIEW IF NOT EXISTS RankedPropertiesForSale AS
         WITH RankedProperties AS (
         SELECT
             p.*,
@@ -21,7 +21,7 @@ module.exports = {
     `);
 
     await queryInterface.sequelize.query(`
-        CREATE MATERIALIZED VIEW RankedPropertiesForRent AS
+        CREATE MATERIALIZED VIEW IF NOT EXISTS RankedPropertiesForRent AS
         WITH RankedProperties AS (
         SELECT
             p.*,
