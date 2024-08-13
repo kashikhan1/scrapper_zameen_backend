@@ -1,5 +1,5 @@
 import { PropertyPurposeType, PropertyType } from '@/models/models';
-import { SORT_COLUMNS, SORT_ORDER } from '.';
+import { BooleanStr, SORT_COLUMNS, SORT_ORDER } from '.';
 
 export interface IGetPropertiesQueryParams {
   page_size: string;
@@ -36,6 +36,7 @@ export interface ISearchPropertiesQueryParams {
   start_date: string;
   end_date: string;
   purpose: string;
+  is_posted_by_agency: BooleanStr;
 }
 
 export interface IGetFeaturedPropertiesQueryParams {

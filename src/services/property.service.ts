@@ -12,7 +12,7 @@ import {
   SORT_ORDER,
 } from '@/types';
 import axios, { AxiosResponse } from 'axios';
-import { City, Location, PropertiesModel, Property, RankedPropertyForRentView, RankedPropertyForSaleView } from '@/models/models';
+import { City, Location, PropertiesModel, Property, AgencyModel, RankedPropertyForRentView, RankedPropertyForSaleView } from '@/models/models';
 import { splitAndTrimString } from '@/utils';
 import { sequelize } from '@/config/sequelize';
 import { RedisService } from './redis.service';
@@ -34,7 +34,13 @@ export class PropertyService {
     return ['id', 'description', 'header', 'type', 'price', 'cover_photo_url', 'available', 'area', 'added', 'bedroom', 'bath'];
   }
   private selectAttributes(includeProperties: string[] = []): FindAttributeOptions {
-    return [...this.selectPropertyAttributes(), [col('Location.name'), 'location'], [col('City.name'), 'city'], ...includeProperties];
+    return [
+      ...this.selectPropertyAttributes(),
+      [col('Location.name'), 'location'],
+      [col('City.name'), 'city'],
+      [col('Agency.title'), 'agency'],
+      ...includeProperties,
+    ];
   }
 
   private async mapPropertiesDetails(properties: PropertiesModel[]) {
@@ -95,6 +101,10 @@ export class PropertyService {
           model: City,
           attributes: [],
         },
+        {
+          model: AgencyModel,
+          attributes: [],
+        },
       ],
       attributes: this.selectAttributes(),
       raw: true,
@@ -112,12 +122,18 @@ export class PropertyService {
           model: City,
           attributes: [],
         },
+        {
+          model: AgencyModel,
+          attributes: [],
+        },
       ],
       attributes: {
         include: [
           [col('Location.name'), 'location'],
           [col('City.name'), 'city'],
           [col('Location.id'), 'location_id'],
+          [col('Agency.title'), 'agency'],
+          [col('Agency.profile_url'), 'agency_profile_url'],
         ],
       },
       raw: true,
@@ -198,6 +214,7 @@ export class PropertyService {
     end_date,
     purpose,
     property_type = '',
+    is_posted_by_agency,
   }: IGetWhereClauseProps): Promise<WhereOptions<InferAttributes<PropertiesModel>>> {
     const cityIdPromise = this.findCityId(city);
     const locationIds = splitAndTrimString(location_ids).map(Number);
@@ -210,6 +227,7 @@ export class PropertyService {
       ...(property_type && { type: { [Op.in]: propertyTypesArray } }),
       ...(location_ids && { location_id: { [Op.in]: locationIds } }),
       ...(city && { city_id: cityId }),
+      ...(is_posted_by_agency != null && { is_posted_by_agency }),
       ...((area_min || area_max) && { area: { ...(area_min && { [Op.gte]: area_min }), ...(area_max && { [Op.lte]: area_max }) } }),
       ...((price_min || price_max) && { price: { ...(price_min && { [Op.gte]: price_min }), ...(price_max && { [Op.lte]: price_max }) } }),
       ...(bedrooms && { bedroom: { [Op.in]: bedroomsArray } }),
@@ -232,6 +250,7 @@ export class PropertyService {
     city,
     location_ids,
     page_number,
+    is_posted_by_agency,
     page_size = 10,
     sorting_order = [[SORT_COLUMNS.ID, SORT_ORDER.ASC]],
     property_type,
@@ -259,6 +278,7 @@ export class PropertyService {
       purpose,
       city,
       location_ids,
+      is_posted_by_agency,
     });
 
     return Property.findAndCountAll({
@@ -273,6 +293,10 @@ export class PropertyService {
         },
         {
           model: City,
+          attributes: [],
+        },
+        {
+          model: AgencyModel,
           attributes: [],
         },
       ],
@@ -307,6 +331,10 @@ export class PropertyService {
         },
         {
           model: City,
+          attributes: [],
+        },
+        {
+          model: AgencyModel,
           attributes: [],
         },
       ],

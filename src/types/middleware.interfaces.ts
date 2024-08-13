@@ -1,4 +1,5 @@
 import { PropertyType } from '@/models/models';
+import { BooleanStr } from '.';
 
 export interface IvalidateSearchFiltersMiddlewareQueryParams {
   property_type: string;
@@ -23,4 +24,8 @@ export interface IvalidatePropertyTypeFilterQueryParams {
 export interface IvalidateAreaFilterQueryParams {
   area_min: string;
   area_max: string;
+}
+
+export interface IvalidateIsPostedByAgencyFilterQueryParams {
+  is_posted_by_agency: BooleanStr;
 }
