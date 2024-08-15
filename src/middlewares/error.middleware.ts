@@ -27,14 +27,7 @@ export const ErrorMiddleware = (error: HttpException, req: Request, res: Respons
         message: message,
       });
       const emailReceipients = splitAndTrimString(EMAIL_RECIPIENTS_LIST);
-      emailReceipients.forEach(email => {
-        transporter.sendMail(
-          getSendEmailPayload({
-            to: email,
-            html,
-          }),
-        );
-      });
+      transporter.sendMail(getSendEmailPayload({ to: emailReceipients, html }));
       sendErrorMessageToSlack({ path, method, status, message });
     }
     res.status(status).json({ message });

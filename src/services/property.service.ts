@@ -1,5 +1,5 @@
 import Container, { Service } from 'typedi';
-import { FindAttributeOptions, InferAttributes, Op, QueryTypes, WhereOptions, col, fn } from 'sequelize';
+import { FindAttributeOptions, Includeable, InferAttributes, Op, QueryTypes, WhereOptions, col, fn } from 'sequelize';
 import { POPULARITY_TREND_URL, AREA_TREND_URL, CONTACT_URL } from '@config/index';
 import {
   AVAILABLE_CITIES,
@@ -42,6 +42,23 @@ export class PropertyService {
       ...includeProperties,
     ];
   }
+
+  private includeModelsInQuery = (): Includeable | Includeable[] => {
+    return [
+      {
+        model: Location,
+        attributes: [],
+      },
+      {
+        model: City,
+        attributes: [],
+      },
+      {
+        model: AgencyModel,
+        attributes: [],
+      },
+    ];
+  };
 
   private async mapPropertiesDetails(properties: PropertiesModel[]) {
     const promises = await Promise.allSettled(
@@ -92,20 +109,7 @@ export class PropertyService {
       order: sorting_order,
       offset: (page_number - 1) * page_size,
       limit: page_size,
-      include: [
-        {
-          model: Location,
-          attributes: [],
-        },
-        {
-          model: City,
-          attributes: [],
-        },
-        {
-          model: AgencyModel,
-          attributes: [],
-        },
-      ],
+      include: this.includeModelsInQuery(),
       attributes: this.selectAttributes(),
       raw: true,
       nest: false,
@@ -113,20 +117,7 @@ export class PropertyService {
   }
   public async findPropertyById(propertyId: number) {
     const property = await Property.findByPk(propertyId, {
-      include: [
-        {
-          model: Location,
-          attributes: [],
-        },
-        {
-          model: City,
-          attributes: [],
-        },
-        {
-          model: AgencyModel,
-          attributes: [],
-        },
-      ],
+      include: this.includeModelsInQuery(),
       attributes: {
         include: [
           [col('Location.name'), 'location'],
@@ -286,20 +277,7 @@ export class PropertyService {
       order: sorting_order,
       offset: (page_number - 1) * page_size,
       limit: page_size,
-      include: [
-        {
-          model: Location,
-          attributes: [],
-        },
-        {
-          model: City,
-          attributes: [],
-        },
-        {
-          model: AgencyModel,
-          attributes: [],
-        },
-      ],
+      include: this.includeModelsInQuery(),
       attributes: this.selectAttributes(),
       raw: true,
       nest: false,
@@ -324,20 +302,7 @@ export class PropertyService {
       ],
       offset: (page_number - 1) * page_size,
       limit: page_size,
-      include: [
-        {
-          model: Location,
-          attributes: [],
-        },
-        {
-          model: City,
-          attributes: [],
-        },
-        {
-          model: AgencyModel,
-          attributes: [],
-        },
-      ],
+      include: this.includeModelsInQuery(),
       attributes: this.selectAttributes(['rank']),
       raw: true,
     });
