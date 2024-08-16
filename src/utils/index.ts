@@ -42,7 +42,7 @@ export const sendErrorMessageToSlack = ({ path, method, status, message }) => {
       `Please investigate this issue promptly.`,
   };
 
-  axios
+  return axios
     .post(SLACK_HOOK_URL, payload)
     .then(response => {
       logger.log('Message sent to Slack:', response.data);

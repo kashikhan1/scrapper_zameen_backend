@@ -9,6 +9,8 @@ export interface IRequestWithSortingParams extends Request {
 
 export type SortingOrder = [SORT_COLUMNS, SORT_ORDER][];
 
+export type BooleanStr = 'true' | 'false';
+
 export enum SORT_ORDER {
   ASC = 'ASC',
   DESC = 'DESC',
@@ -35,6 +37,7 @@ export interface ISearchPropertiesProps {
   location_ids?: string;
   page_number: number;
   page_size?: number;
+  is_posted_by_agency?: boolean;
   sorting_order?: SortingOrder;
   property_type?: string;
   area_min?: string;
@@ -94,6 +97,7 @@ export interface IGetWhereClauseProps {
   end_date?: string;
   purpose?: string;
   property_type?: string;
+  is_posted_by_agency?: boolean;
 }
 
 export interface IGetBestPropertiesProps {

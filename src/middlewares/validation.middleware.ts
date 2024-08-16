@@ -9,6 +9,7 @@ import { PropertyPurposeType, PropertyType } from '@/models/models';
 import {
   IvalidateAreaFilterQueryParams,
   IvalidatePropertyTypeFilterQueryParams,
+  IvalidateIsPostedByAgencyFilterQueryParams,
   IvalidateSearchFiltersMiddlewareQueryParams,
 } from '@/types/middleware.interfaces';
 import { splitAndTrimString } from '@/utils';
@@ -152,6 +153,19 @@ export const validateAreaFilter = (req: Request, res: Response, next: NextFuncti
     const { area_min, area_max } = query as unknown as IvalidateAreaFilterQueryParams;
     if (isInvalidNumber(area_min) || (area_max && isInvalidNumber(area_max))) {
       return returnBadRequestError({ res, message: 'Invalid area parameters. Both area_min and area_max must be valid numbers (in square feet).' });
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const validateIsPostedByAgencyFilter = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { query } = req;
+    const { is_posted_by_agency } = query as unknown as IvalidateIsPostedByAgencyFilterQueryParams;
+    if (is_posted_by_agency && is_posted_by_agency !== 'false' && is_posted_by_agency !== 'true') {
+      return returnBadRequestError({ res, message: 'Invalid is_posted_by_agency parameter. It must be either true or false.' });
     }
     next();
   } catch (err) {

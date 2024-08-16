@@ -9,6 +9,7 @@ import {
   validatePurposeFilter,
   validatePropertyTypeFilter,
   validateAreaFilter,
+  validateIsPostedByAgencyFilter,
 } from '@/middlewares/validation.middleware';
 import { validatePaginationParamsMiddleware, validateSortParamsMiddleware } from '@/middlewares/pagination.middleware';
 
@@ -54,6 +55,7 @@ export class PropertyRoute implements Routes {
       validatePaginationParamsMiddleware,
       validateSortParamsMiddleware,
       validateSearchFiltersMiddleware,
+      validateIsPostedByAgencyFilter,
       validatePropertyTypeFilter,
       validatePurposeFilter,
       validateAreaFilter,
@@ -97,6 +99,7 @@ export class PropertyRoute implements Routes {
       validateSortParamsMiddleware,
       validateCityParam,
       validateSearchFiltersMiddleware,
+      validateIsPostedByAgencyFilter,
       validatePropertyTypeFilter,
       validatePurposeFilter,
       validateAreaFilter,

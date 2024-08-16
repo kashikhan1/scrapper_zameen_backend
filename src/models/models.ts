@@ -3,6 +3,7 @@ import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, 
 
 const { TABLE_NAME: CITIES_TABLE } = require('../migrations/20240713080551-create-city');
 const { TABLE_NAME: LOCATIONS_TABLE } = require('../migrations/20240714103816-locations');
+const { TABLE_NAME: AGENCY_TABLE } = require('../migrations/20240813055146-create-agency-table');
 const { TABLE_NAME: PROPERTIES_TABLE } = require('../migrations/20240715121921-create-properties');
 
 export type PropertyType =
@@ -53,6 +54,8 @@ export interface PropertiesModel extends Model<InferAttributes<PropertiesModel>,
     features: string[];
   }[];
   city_id: number;
+  agency_id: number;
+  is_posted_by_agency: boolean;
 }
 
 export const Property = sequelize.define<PropertiesModel>(
@@ -180,6 +183,20 @@ export const Property = sequelize.define<PropertiesModel>(
       onUpdate: 'CASCADE',
       onDelete: 'SET NULL',
       allowNull: true,
+    },
+    agency_id: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: AGENCY_TABLE,
+        key: 'id',
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL',
+      allowNull: true,
+    },
+    is_posted_by_agency: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
   },
   {
@@ -320,3 +337,50 @@ Location.hasMany(RankedPropertyForRentView, { foreignKey: 'location_id' });
 
 RankedPropertyForRentView.belongsTo(City, { foreignKey: 'city_id' });
 City.hasMany(RankedPropertyForRentView, { foreignKey: 'city_id' });
+
+export class AgencyModel extends Model {}
+AgencyModel.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    title: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    profile_url: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      unique: true,
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: literal('CURRENT_TIMESTAMP'),
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: literal('CURRENT_TIMESTAMP'),
+    },
+  },
+  {
+    sequelize,
+    tableName: AGENCY_TABLE,
+    modelName: 'Agency',
+    timestamps: false,
+    underscored: true,
+    paranoid: true,
+  },
+);
+
+Property.belongsTo(AgencyModel, { foreignKey: 'agency_id' });
+AgencyModel.hasMany(Property, { foreignKey: 'agency_id' });
+
+RankedPropertyForRentView.belongsTo(AgencyModel, { foreignKey: 'agency_id' });
+AgencyModel.hasMany(RankedPropertyForRentView, { foreignKey: 'agency_id' });
+RankedPropertyForSaleView.belongsTo(AgencyModel, { foreignKey: 'agency_id' });
+AgencyModel.hasMany(RankedPropertyForSaleView, { foreignKey: 'agency_id' });

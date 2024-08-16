@@ -73,8 +73,21 @@ export class PropertyController {
   };
   public searchProperties = async (req: IRequestWithSortingParams, res: Response, next: NextFunction) => {
     const { query, params, order } = req;
-    const { location_ids, page_number, page_size, property_type, area_min, area_max, price_min, price_max, bedrooms, start_date, end_date, purpose } =
-      query as unknown as ISearchPropertiesQueryParams;
+    const {
+      location_ids,
+      page_number,
+      page_size,
+      property_type,
+      area_min,
+      area_max,
+      price_min,
+      price_max,
+      bedrooms,
+      start_date,
+      end_date,
+      purpose,
+      is_posted_by_agency,
+    } = query as unknown as ISearchPropertiesQueryParams;
 
     try {
       const { rows: properties, count: total_count } = await this.property.searchProperties({
@@ -82,6 +95,7 @@ export class PropertyController {
         location_ids,
         page_number: Number(page_number),
         page_size: Number(page_size),
+        is_posted_by_agency: is_posted_by_agency === 'true',
         sorting_order: order,
         property_type,
         area_min,
