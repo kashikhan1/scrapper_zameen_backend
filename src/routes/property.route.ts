@@ -68,6 +68,7 @@ export class PropertyRoute implements Routes {
       validatePaginationParamsMiddleware,
       this.property.getBestProperties,
     );
+    this.router.get(`${this.path}/locations`, this.property.getLocationHierarchy);
     this.router.get(
       `${this.path}/best/:city`,
       validateCityParam,

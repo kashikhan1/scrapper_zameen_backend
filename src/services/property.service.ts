@@ -7,6 +7,7 @@ import {
   IGetBestPropertiesProps,
   IGetPropertiesCountMapProps,
   IGetWhereClauseProps,
+  ILocationHierarchy,
   ISearchPropertiesProps,
   SORT_COLUMNS,
   SORT_ORDER,
@@ -313,5 +314,48 @@ export class PropertyService {
       attributes: this.selectAttributes(['rank']),
       raw: true,
     });
+  }
+
+  public async getLocationHierarchy() {
+    const locationMap = new Map<string, ILocationHierarchy>();
+    const allLocations = await Location.findAll({ attributes: ['name'] });
+
+    allLocations.forEach(location => {
+      const locationNameParts = splitAndTrimString(location.name).reverse();
+      this.buildLocationHierarchy(locationMap, locationNameParts);
+    });
+
+    return this.convertMapToHierarchy(locationMap);
+  }
+
+  private buildLocationHierarchy(locationMap: Map<string, ILocationHierarchy>, locationNameParts: string[]) {
+    if (locationNameParts.length === 0) return;
+
+    const currentLocationName = locationNameParts[0];
+
+    if (!locationMap.has(currentLocationName)) {
+      locationMap.set(currentLocationName, { name: currentLocationName, children: [] });
+    }
+
+    const currentLocation = locationMap.get(currentLocationName)!;
+
+    if (locationNameParts.length > 1) {
+      const childName = locationNameParts[1];
+      let child = currentLocation.children.find(child => child.name === childName);
+
+      if (!child) {
+        child = { name: childName, children: [] };
+        currentLocation.children.push(child);
+      }
+
+      this.buildLocationHierarchy(new Map(currentLocation.children.map(child => [child.name, child])), locationNameParts.slice(1));
+    }
+  }
+
+  private convertMapToHierarchy(locationMap: Map<string, ILocationHierarchy>): ILocationHierarchy[] {
+    return Array.from(locationMap.values()).map(node => ({
+      name: node.name,
+      children: this.convertMapToHierarchy(new Map(node.children.map(child => [child.name, child]))),
+    }));
   }
 }
