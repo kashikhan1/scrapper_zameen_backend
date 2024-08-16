@@ -176,4 +176,12 @@ export class PropertyController {
       next(error);
     }
   };
+  public getLocationHierarchy = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const response = await this.property.getLocationHierarchy();
+      res.json({ data: response, message: 'location-hierarchy' });
+    } catch (err) {
+      next(err);
+    }
+  };
 }
