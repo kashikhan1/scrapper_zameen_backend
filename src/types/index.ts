@@ -109,6 +109,7 @@ export interface IGetBestPropertiesProps {
 }
 
 export interface ILocationHierarchy {
+  id: number;
   name: string;
   children: ILocationHierarchy[];
 }

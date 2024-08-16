@@ -318,23 +318,23 @@ export class PropertyService {
 
   public async getLocationHierarchy() {
     const locationMap = new Map<string, ILocationHierarchy>();
-    const allLocations = await Location.findAll({ attributes: ['name'] });
+    const allLocations = await Location.findAll({ attributes: ['id', 'name'] });
 
     allLocations.forEach(location => {
       const locationNameParts = splitAndTrimString(location.name).reverse();
-      this.buildLocationHierarchy(locationMap, locationNameParts);
+      this.buildLocationHierarchy(locationMap, locationNameParts, location.id);
     });
 
     return this.convertMapToHierarchy(locationMap);
   }
 
-  private buildLocationHierarchy(locationMap: Map<string, ILocationHierarchy>, locationNameParts: string[]) {
+  private buildLocationHierarchy(locationMap: Map<string, ILocationHierarchy>, locationNameParts: string[], locationId: number) {
     if (locationNameParts.length === 0) return;
 
     const currentLocationName = locationNameParts[0];
 
     if (!locationMap.has(currentLocationName)) {
-      locationMap.set(currentLocationName, { name: currentLocationName, children: [] });
+      locationMap.set(currentLocationName, { name: currentLocationName, id: locationId, children: [] });
     }
 
     const currentLocation = locationMap.get(currentLocationName)!;
@@ -344,16 +344,17 @@ export class PropertyService {
       let child = currentLocation.children.find(child => child.name === childName);
 
       if (!child) {
-        child = { name: childName, children: [] };
+        child = { name: childName, id: locationId, children: [] };
         currentLocation.children.push(child);
       }
 
-      this.buildLocationHierarchy(new Map(currentLocation.children.map(child => [child.name, child])), locationNameParts.slice(1));
+      this.buildLocationHierarchy(new Map(currentLocation.children.map(child => [child.name, child])), locationNameParts.slice(1), locationId);
     }
   }
 
   private convertMapToHierarchy(locationMap: Map<string, ILocationHierarchy>): ILocationHierarchy[] {
     return Array.from(locationMap.values()).map(node => ({
+      id: node.id,
       name: node.name,
       children: this.convertMapToHierarchy(new Map(node.children.map(child => [child.name, child]))),
     }));
