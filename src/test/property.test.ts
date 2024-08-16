@@ -14,64 +14,40 @@ jest.mock('@/utils/helpers', () => ({
 }));
 const propertyServiceMock: MockProxy<PropertyService> = mock<PropertyService>();
 
+const getMockPropertiesData = () => ({
+  count: 2,
+  rows: [
+    {
+      id: 1,
+      description: 'description',
+      header: 'Header',
+      type: 'house',
+      price: 95000000,
+      cover_photo_url: 'cover_photo_url.jpeg',
+      available: true,
+      area: 450,
+      location: 'Islamabad',
+    } as any,
+    {
+      id: 1,
+      description: 'description',
+      header: 'Header',
+      type: 'house',
+      price: 9000000,
+      cover_photo_url: 'cover_photo_url.jpeg',
+      available: true,
+      area: 490,
+      location: 'Islamabad',
+    } as any,
+  ],
+});
+
 const mockfindAllProperties = () => {
-  propertyServiceMock.findAllProperties.mockResolvedValue({
-    count: 2,
-    rows: [
-      {
-        id: 1,
-        description: 'description',
-        header: 'Header',
-        type: 'house',
-        price: 95000000,
-        cover_photo_url: 'cover_photo_url.jpeg',
-        available: true,
-        area: 450,
-        location: 'Islamabad',
-      } as any,
-      {
-        id: 1,
-        description: 'description',
-        header: 'Header',
-        type: 'house',
-        price: 9000000,
-        cover_photo_url: 'cover_photo_url.jpeg',
-        available: true,
-        area: 490,
-        location: 'Islamabad',
-      } as any,
-    ],
-  });
+  propertyServiceMock.findAllProperties.mockResolvedValue(getMockPropertiesData());
 };
 
 const mockSearchProperties = () => {
-  propertyServiceMock.searchProperties.mockResolvedValue({
-    count: 2,
-    rows: [
-      {
-        id: 1,
-        description: 'description',
-        header: 'Header',
-        type: 'house',
-        price: 95000000,
-        cover_photo_url: 'cover_photo_url.jpeg',
-        available: true,
-        area: 450,
-        location: 'Islamabad',
-      } as any,
-      {
-        id: 1,
-        description: 'description',
-        header: 'Header',
-        type: 'house',
-        price: 9000000,
-        cover_photo_url: 'cover_photo_url.jpeg',
-        available: true,
-        area: 350,
-        location: 'Islamabad',
-      } as any,
-    ],
-  });
+  propertyServiceMock.searchProperties.mockResolvedValue(getMockPropertiesData());
 };
 
 describe('Property', () => {
@@ -79,6 +55,21 @@ describe('Property', () => {
     jest.clearAllMocks();
   });
   let app;
+
+  const forSaleQuery = { purpose: 'for_sale' };
+  const requestUrl = (url: string = '') => request(app).get(`/property${url}`);
+  const expectMessagePropertyInResponseBody = (response: request.Response) => {
+    expect(response.body).toHaveProperty('message');
+  };
+  const expectBadRequestError = (response: request.Response) => {
+    expect(response.status).toBe(400);
+    expectMessagePropertyInResponseBody(response);
+  };
+  const expectInternalServerError = (response: request.Response) => {
+    expect(response.status).toBe(500);
+    expectMessagePropertyInResponseBody(response);
+  };
+
   beforeAll(() => {
     Container.set(PropertyService, propertyServiceMock);
     const route = new PropertyRoute();
@@ -90,7 +81,7 @@ describe('Property', () => {
   describe('GET /property', () => {
     it('should retrieve properties with default pagination and sorting', async () => {
       mockfindAllProperties();
-      const response = await request(app).get('/property').query({ purpose: 'for_sale' });
+      const response = await requestUrl().query(forSaleQuery);
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('message', 'findAll');
@@ -102,7 +93,7 @@ describe('Property', () => {
 
     it('should retrieve properties with custom pagination', async () => {
       mockfindAllProperties();
-      const response = await request(app).get('/property?page_size=5&page_number=2').query({ purpose: 'for_sale' });
+      const response = await requestUrl().query({ page_size: 5, page_number: 2, ...forSaleQuery });
       expect(response.status).toBe(200);
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
@@ -112,7 +103,7 @@ describe('Property', () => {
 
     it('should retrieve properties sorted by price in descending order', async () => {
       mockfindAllProperties();
-      const response = await request(app).get('/property?sort_by=price&sort_order=DESC').query({ purpose: 'for_sale' });
+      const response = await requestUrl().query({ sort_by: 'price', sort_order: 'DESC', ...forSaleQuery });
       expect(response.status).toBe(200);
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
@@ -122,28 +113,25 @@ describe('Property', () => {
       expect(prices).toEqual([...prices].sort((a, b) => b - a));
     });
     it('should return 400 for invalid pagination parameters', async () => {
-      const response = await request(app).get('/property?page_size=-1&page_number=0');
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl().query({ page_size: -1, page_number: 0 });
+      expectBadRequestError(response);
     });
     it('should return 400 for invalid sorting parameters', async () => {
-      const response = await request(app).get('/property?sort_by=unknown_field&sort_order=DESC');
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl().query({ sort_by: 'unknown_field', sort_order: 'DESC' });
+      expectBadRequestError(response);
     });
     it('should return 400 for invalid sorting parameters (sort_order)', async () => {
-      const response = await request(app).get('/property?sort_by=price&sort_order=unknown');
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl().query({ sort_by: 'price', sort_order: 'unknown' });
+      expectBadRequestError(response);
     });
     it('Should return error', async () => {
       propertyServiceMock.findAllProperties.mockRejectedValue('Error');
-      const response = await request(app).get('/property').query({ purpose: 'for_sale' });
-      expect(response.status).toBe(500);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl().query(forSaleQuery);
+      expectInternalServerError(response);
     });
   });
   describe('GET /property/count', () => {
+    const BASE_URL = '/count';
     it('should retrieve the total count of properties', async () => {
       propertyServiceMock.getPropertiesCountMap.mockResolvedValue({
         'Agricultural Land': 76,
@@ -151,7 +139,7 @@ describe('Property', () => {
         'Commercial Plot': 2768,
         Factory: 558,
       });
-      const response = await request(app).get('/property/count?purpose=for_sale');
+      const response = await requestUrl(BASE_URL).query(forSaleQuery);
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
       expect(response.body.data).toBeInstanceOf(Object);
@@ -164,7 +152,7 @@ describe('Property', () => {
         'Commercial Plot': 2768,
         Factory: 558,
       });
-      const response = await request(app).get('/property/count/islamabad?purpose=for_sale');
+      const response = await requestUrl(`${BASE_URL}/islamabad`).query(forSaleQuery);
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
       expect(response.body.data).toBeInstanceOf(Object);
@@ -172,15 +160,14 @@ describe('Property', () => {
     });
     it('Should return error', async () => {
       propertyServiceMock.getPropertiesCountMap.mockRejectedValue('Error');
-      const response = await request(app).get('/property/count').query({ purpose: 'for_sale' });
-      expect(response.status).toBe(500);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query(forSaleQuery);
+      expectInternalServerError(response);
     });
   });
   describe('GET /property/:id', () => {
     it('should retrieve a property by ID', async () => {
       propertyServiceMock.findPropertyById.mockResolvedValue([{ id: 1 }]);
-      const response = await request(app).get('/property/1');
+      const response = await requestUrl('/1');
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('message', 'findOne');
@@ -191,7 +178,7 @@ describe('Property', () => {
 
     it('should return empty array for a non-existent property ID', async () => {
       propertyServiceMock.findPropertyById.mockResolvedValue([]);
-      const response = await request(app).get('/property/9999');
+      const response = await requestUrl('/9999');
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('message', 'findOne');
@@ -200,15 +187,15 @@ describe('Property', () => {
     });
     it('Should return error', async () => {
       propertyServiceMock.findPropertyById.mockRejectedValue('Error');
-      const response = await request(app).get('/property/1');
-      expect(response.status).toBe(500);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl('/1');
+      expectInternalServerError(response);
     });
   });
   describe('GET /property/:city', () => {
+    const BASE_URL = '/islamabad';
     it('should retrieve properties in a specific city with default pagination and sorting', async () => {
       mockfindAllProperties();
-      const response = await request(app).get('/property/islamabad?purpose=for_sale');
+      const response = await requestUrl(BASE_URL).query(forSaleQuery);
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('message', 'findAll');
@@ -223,7 +210,7 @@ describe('Property', () => {
 
     it('should retrieve properties in a specific city with custom pagination', async () => {
       mockfindAllProperties();
-      const response = await request(app).get('/property/islamabad?page_size=5&page_number=2&purpose=for_sale');
+      const response = await requestUrl(BASE_URL).query({ page_size: 5, page_number: 2, ...forSaleQuery });
       expect(response.status).toBe(200);
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
@@ -236,7 +223,7 @@ describe('Property', () => {
 
     it('should retrieve properties in a specific city sorted by price in descending order', async () => {
       mockfindAllProperties();
-      const response = await request(app).get('/property/islamabad?sort_by=price&sort_order=DESC&purpose=for_sale');
+      const response = await requestUrl(BASE_URL).query({ sort_by: 'price', sort_order: 'DESC', ...forSaleQuery });
       expect(response.status).toBe(200);
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
@@ -246,21 +233,20 @@ describe('Property', () => {
       expect(prices).toEqual([...prices].sort((a, b) => b - a));
     });
     it('should return no data for invalid city name', async () => {
-      const response = await request(app).get('/property/invalid city name');
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl('/invalid city name');
+      expectBadRequestError(response);
     });
     it('Should return error', async () => {
       propertyServiceMock.findAllProperties.mockRejectedValue('Error');
-      const response = await request(app).get('/property/islamabad').query({ purpose: 'for_sale' });
-      expect(response.status).toBe(500);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query(forSaleQuery);
+      expectInternalServerError(response);
     });
   });
   describe('GET /property/search', () => {
+    const BASE_URL = '/search';
     it('should retrieve properties with default pagination and sorting', async () => {
       mockSearchProperties();
-      const response = await request(app).get('/property/search');
+      const response = await requestUrl(BASE_URL);
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('message', 'search-properties');
@@ -272,7 +258,7 @@ describe('Property', () => {
 
     it('should retrieve properties with custom pagination', async () => {
       mockSearchProperties();
-      const response = await request(app).get('/property/search?page_size=5&page_number=2&purpose=for_sale');
+      const response = await requestUrl(BASE_URL).query({ page_size: 5, page_number: 2, ...forSaleQuery });
       expect(response.status).toBe(200);
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
@@ -282,7 +268,7 @@ describe('Property', () => {
 
     it('should retrieve properties sorted by price in descending order', async () => {
       mockfindAllProperties();
-      const response = await request(app).get('/property/search?sort_by=price&sort_order=DESC&purpose=for_sale');
+      const response = await requestUrl(BASE_URL).query({ sort_by: 'price', sort_order: 'DESC', ...forSaleQuery });
       expect(response.status).toBe(200);
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
@@ -292,42 +278,36 @@ describe('Property', () => {
       expect(prices).toEqual([...prices].sort((a, b) => b - a));
     });
     it('should return 400 for invalid purpose parameter', async () => {
-      const response = await request(app).get('/property/search?purpose=invalid');
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query({ purpose: 'invalid' });
+      expectBadRequestError(response);
     });
     it('should return error when get property purpose rejects', async () => {
       (getPropertyPurpose as jest.Mock).mockRejectedValueOnce('Error occured!');
-      const response = await request(app).get('/property/search?purpose=for_sale');
-      expect(response.status).toBe(500);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query(forSaleQuery);
+      expectInternalServerError(response);
     });
     it('should return 400 for invalid pagination parameters', async () => {
-      const response = await request(app).get('/property/search?page_size=-1&page_number=0');
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query({ page_size: -1, page_number: 0 });
+      expectBadRequestError(response);
     });
     it('should return 400 for invalid sorting parameters', async () => {
-      const response = await request(app).get('/property/search?sort_by=unknown_field&sort_order=DESC');
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query({ sort_by: 'unknown_field', sort_order: 'DESC' });
+      expectBadRequestError(response);
     });
     it('should return 400 for invalid sorting parameters (sort_order)', async () => {
-      const response = await request(app).get('/property/search?sort_by=price&sort_order=unknown');
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query({ sort_by: 'price', sort_order: 'unknown' });
+      expectBadRequestError(response);
     });
     it('should return 400 for invalid location_ids parameters', async () => {
-      const response = await request(app).get('/property/search?location_ids=invalid');
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query({ location_ids: 'invalid' });
+      expectBadRequestError(response);
     });
     it('should search', async () => {
       mockSearchProperties();
       const responses = await Promise.all([
-        request(app).get('/property/search?location_ids=1,2,3&purpose=for_sale'),
-        request(app).get('/property/search?location_ids=123&purpose=for_sale'),
-        request(app).get('/property/search?location_ids=1&purpose=for_sale'),
+        requestUrl(BASE_URL).query({ location_ids: '1,2,3', ...forSaleQuery }),
+        requestUrl(BASE_URL).query({ location_ids: '123', ...forSaleQuery }),
+        requestUrl(BASE_URL).query({ location_ids: '1', ...forSaleQuery }),
       ]);
       responses.forEach(res => {
         expect(res.status).toBe(200);
@@ -337,71 +317,63 @@ describe('Property', () => {
       });
     });
     it('should return 400 for invalid price_min parameter', async () => {
-      const response = await request(app).get('/property/search?price_min=-1');
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query({ price_min: -1 });
+      expectBadRequestError(response);
     });
     it('should return 400 for invalid price_max parameter', async () => {
-      const response = await request(app).get('/property/search?price_max=-1');
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query({ price_max: -1 });
+      expectBadRequestError(response);
     });
     it('should return 400 for invalid area_min parameter', async () => {
-      const response = await request(app).get('/property/search?area_min=-1');
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query({ area_min: -1 });
+      expectBadRequestError(response);
     });
     it('should return 400 for invalid area_max parameter', async () => {
-      const response = await request(app).get('/property/search?area_max=-1');
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query({ area_max: -1 });
+      expectBadRequestError(response);
     });
     it('should return 400 for invalid bedrooms parameter', async () => {
-      const response = await request(app).get('/property/search?bedrooms=1,a');
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query({ bedrooms: '1,a' });
+      expectBadRequestError(response);
     });
     it('should return 400 for invalid property_type parameter', async () => {
-      const response = await request(app).get('/property/search?property_type=invalid');
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query({ property_type: 'invalid' });
+      expectBadRequestError(response);
     });
     it('should return 400 for invalid start_date parameter', async () => {
-      const response = await request(app).get('/property/search?start_date=invalid');
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query({ start_date: 'invalid' });
+      expectBadRequestError(response);
     });
     it('should return 400 for invalid end_date parameter', async () => {
-      const response = await request(app).get('/property/search?end_date=invalid');
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query({ end_date: 'invalid' });
+      expectBadRequestError(response);
     });
     it('Should return error', async () => {
       propertyServiceMock.searchProperties.mockRejectedValue('Error');
-      const response = await request(app).get('/property/search?location_ids=1,2,3').query({ purpose: 'for_sale' });
-      expect(response.status).toBe(500);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query({ location_ids: '1,2,3', ...forSaleQuery });
+      expectInternalServerError(response);
     });
   });
   describe('GET /property/available-cities', () => {
+    const BASE_URL = '/available-cities';
     it('Should return available cities list', async () => {
       propertyServiceMock.availableCitiesData.mockResolvedValue(Object.values(AVAILABLE_CITIES));
-      const response = await request(app).get('/property/available-cities');
+      const response = await requestUrl(BASE_URL);
       expect(response.status).toBe(200);
       expect(response.body.data).toBeInstanceOf(Array);
       expect(response.body).toHaveProperty('message', 'available-cities');
     });
     it('Should return error', async () => {
       propertyServiceMock.availableCitiesData.mockRejectedValue('Error occured!');
-      const response = await request(app).get('/property/available-cities');
-      expect(response.status).toBe(500);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL);
+      expectInternalServerError(response);
     });
   });
   describe('GET /property/featured', () => {
+    const BASE_URL = '/featured';
     it('Should return featured properties', async () => {
       mockSearchProperties();
-      const response = await request(app).get('/property/featured?purpose=for_sale');
+      const response = await requestUrl(BASE_URL).query(forSaleQuery);
       expect(response.status).toBe(200);
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
@@ -410,12 +382,12 @@ describe('Property', () => {
     });
     it('Should return error', async () => {
       propertyServiceMock.searchProperties.mockRejectedValue('Error');
-      const response = await request(app).get('/property/featured').query({ purpose: 'for_sale' });
-      expect(response.status).toBe(500);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query(forSaleQuery);
+      expectInternalServerError(response);
     });
   });
   describe('GET /property/similar', () => {
+    const BASE_URL = '/similar';
     it('Should return featured properties', async () => {
       propertyServiceMock.findPropertyById.mockResolvedValue([
         {
@@ -431,7 +403,7 @@ describe('Property', () => {
         },
       ]);
       mockSearchProperties();
-      const response = await request(app).get('/property/similar?id=1&purpose=for_sale');
+      const response = await requestUrl(BASE_URL).query({ id: 1, ...forSaleQuery });
       expect(response.status).toBe(200);
       expect(response.body.data).toBeInstanceOf(Object);
       expect(response.body.data).toHaveProperty('properties');
@@ -440,15 +412,15 @@ describe('Property', () => {
     });
     it('Should return error', async () => {
       propertyServiceMock.searchProperties.mockRejectedValue(new Error('This should not be done!'));
-      const response = await request(app).get('/property/similar?id=1').query({ purpose: 'for_sale' });
-      expect(response.status).toBe(500);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL).query({ id: 1, ...forSaleQuery });
+      expectInternalServerError(response);
     });
   });
   describe('GET /property/suggestions', () => {
+    const BASE_URL = '/suggestions';
     it('Should return a list of suggestions', async () => {
       propertyServiceMock.autoCompleteLocation.mockResolvedValue([{ name: 'test1' } as any, { name: 'test2' } as any]);
-      const response = await request(app).get('/property/suggestions');
+      const response = await requestUrl(BASE_URL);
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('message', 'auto-complete-locations');
       expect(response.body).toHaveProperty('data');
@@ -456,9 +428,8 @@ describe('Property', () => {
     });
     it('Should return error', async () => {
       propertyServiceMock.autoCompleteLocation.mockRejectedValue('Error occured!');
-      const response = await request(app).get('/property/suggestions');
-      expect(response.status).toBe(500);
-      expect(response.body).toHaveProperty('message');
+      const response = await requestUrl(BASE_URL);
+      expectInternalServerError(response);
     });
   });
 });
