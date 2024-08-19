@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { Routes } from '@interfaces/routes.interface';
 import { PropertyController } from '@/controllers/property.controller';
+
 import {
   validateCityParam,
   validateSearchQueryParamMiddleware,
