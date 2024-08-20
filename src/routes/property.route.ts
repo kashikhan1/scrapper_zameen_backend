@@ -7,9 +7,7 @@ import {
   validateSearchFiltersMiddleware,
   validatePropertyId,
   validatePurposeFilter,
-  validatePropertyTypeFilter,
-  validateAreaFilter,
-  validateIsPostedByAgencyFilter,
+  validatePropertyTypeFilter
 } from '@/middlewares/validation.middleware';
 import { validatePaginationParamsMiddleware, validateSortParamsMiddleware } from '@/middlewares/pagination.middleware';
 
