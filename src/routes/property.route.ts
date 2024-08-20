@@ -4,8 +4,6 @@ import { PropertyController } from '@/controllers/property.controller';
 import {
   validateCityParam,
   validateSearchQueryParamMiddleware,
-  validateSearchFiltersMiddleware,
-  validatePropertyId,
   validatePurposeFilter,
   validatePropertyTypeFilter,
   validateAreaFilter,
@@ -31,15 +29,6 @@ export class PropertyRoute implements Routes {
       this.property.getProperties,
     );
     this.router.get(`${this.path}/suggestions`, this.property.autoCompleteLocations);
-    this.router.get(
-      `${this.path}/count`,
-      validateSearchQueryParamMiddleware,
-      validateSearchFiltersMiddleware,
-      validatePropertyTypeFilter,
-      validatePurposeFilter,
-      validateAreaFilter,
-      this.property.getPropertyCount,
-    );
     this.router.get(`${this.path}/available-cities`, this.property.getAvailableCities);
     this.router.get(`${this.path}/featured`, validatePaginationParamsMiddleware, validatePurposeFilter, this.property.getFeaturedProperties);
     this.router.get(
