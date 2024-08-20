@@ -9,14 +9,15 @@ import {
   IGetPropertiesQueryParams,
   IGetPropertyCountQueryParams,
   IGetSimilarPropertiesQueryParams,
-  ISearchPropertiesQueryParams,
+  ISearchPropertiesQueryParams
+  
 } from '@/types/controller.interfaces';
 import { PropertyPurposeType, PropertyType } from '@/models/models';
 
 export class PropertyController {
   public property = Container.get(PropertyService);
 
-  public getProperties = async (req: IRequestWithSortingParams, res: Response, next: NextFunction): Promise<void> => {
+  public getProperties = async (req: any, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { query, params, order } = req;
       const { page_size, page_number, purpose } = query as unknown as IGetPropertiesQueryParams;
